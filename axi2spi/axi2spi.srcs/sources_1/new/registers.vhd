@@ -71,7 +71,6 @@ entity registers is
         -- (5) DRR Over-run, (4) DRR Full, (3) DTR Under-run, (2) DTR Empty, (1) Slave MODF, (0) MODF |
         IPIER       :   in std_logic_vector(31 downto 0)
     );
-    
 
 end registers;
 
