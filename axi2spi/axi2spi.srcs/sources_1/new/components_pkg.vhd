@@ -7,21 +7,33 @@ package components_pkg is
         port (
             clk_in      :   in std_logic;
             rst         :   in std_logic;
+            -- 
+            d_in        :   in std_logic_vector(31 downto 0); -- input from AXI4?
         
-            SRR      :  in std_logic_vector(31 downto 0);
-            SPICR    :  in std_logic_vector(31 downto 0);
-            SPISR    :  in std_logic_vector(31 downto 0);
-            SPIDTR  :   in std_logic_vector(31 downto 0);
-            SPIDRR  :   in std_logic_vector(31 downto 0);
-            SPISSR  :   in std_logic_vector(31 downto 0);
+            --  NOT SURE THESE ARE INPUT VECTORS
+            SRR     :   out std_logic_vector(31 downto 0);
+            SPICR   :   out std_logic_vector(31 downto 0);
+            SPISR   :   out std_logic_vector(31 downto 0);
+            SPIDTR  :   out std_logic_vector(31 downto 0);
+            SPIDRR  :   out std_logic_vector(31 downto 0);
+            SPISSR  :   out std_logic_vector(31 downto 0);
             
-            Tx_FIFO_OCY :   in std_logic_vector(31 downto 0);
-            Rx_FIFO_OCY :   in std_logic_vector(31 downto 0);
-            DGIER       :   in std_logic_vector(31 downto 0);
-            IPISR       :   in std_logic_vector(31 downto 0);
-            IPIER       :   in std_logic_vector(31 downto 0)
+            Tx_FIFO_OCY :   out std_logic_vector(31 downto 0);
+            Rx_FIFO_OCY :   out std_logic_vector(31 downto 0);
+            DGIER       :   out std_logic_vector(31 downto 0);
+            IPISR       :   out std_logic_vector(31 downto 0);
+            IPIER       :   out std_logic_vector(31 downto 0)
         );
     
+    end component;
+    
+    component load_register is
+        port (
+            clk     :   in std_logic;
+            load    :   in std_logic;
+            d_in    :   in std_logic_vector(31 downto 0);
+            d_out   :   out std_logic_vector(31 downto 0)
+        );
     end component;
 
 end components_pkg;
