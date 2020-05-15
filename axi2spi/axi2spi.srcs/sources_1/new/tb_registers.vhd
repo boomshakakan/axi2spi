@@ -10,6 +10,7 @@ architecture Behavioral of tb_registers is
     signal clk_i    :   std_logic := '0';
     signal rst_i    :   std_logic;
     signal en_i     :   std_logic;
+    signal stb_i    :   std_logic_vector(1 downto 0);
     signal data_i   :   std_logic_vector(31 downto 0);
     signal data_o   :   std_logic_vector(31 downto 0);
     
@@ -27,12 +28,23 @@ begin
     rst_i   <= '0', '1' after 1us;
     
     data_i  <= x"ffffffff";
+    stb_i   <= "11";
+    
+    process 
+    begin
+        wait for 10ns;
+        en_0    <= '1';
+        en_3    <= '1';
+        en_5    <= '1';
+        wait for 100ns;
+    end process;
     
     DUT :   registers
         port map (
             clk             => clk_i,
             rst_n           => rst_i,
             wr_data         => data_i,
+            stb_in          => stb_i,
             SRR_RST         => SRR_RST,
             SRR_en          => en_0,
             SPICR_en        => en_1,

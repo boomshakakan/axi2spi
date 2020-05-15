@@ -2,6 +2,7 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 use work.components_pkg.load_register;
+use work.components_pkg.toggle_on_write;
 
 entity registers is
     
@@ -9,9 +10,12 @@ entity registers is
         -- SYSTEM INTERFACE
         clk         :   in std_logic;
         rst_n       :   in std_logic;
+        stb_in      :   in std_logic_vector(1 downto 0);  -- strobe signal for byte to be written 
         wr_data     :   in std_logic_vector(31 downto 0); -- data to be written
-        -- SYSTEM RESET OUTPUT FROM SRR
+        
+        -- SYSTEM RESET OUTPUT FROM SRR & SYSTEM INTERRUPT
         SRR_RST     :   out std_logic;
+        -- INTERRUPT   :   out std_logic;
         
         -- REGISTER ENABLES
         SRR_en          :   in std_logic;
@@ -79,11 +83,11 @@ entity registers is
         DGIER       :   out std_logic_vector(31 downto 0);
         
         -- IPISR : IP Interrupt Status Register (R/TOW)
-        -- 9 unique interrupts
+        -- 9 unique interrupts that toggle output of interrupt bit
         -- *bits* | (31) ... (9) -> Reserved, (8) DRR_Not_Empty, (7) Slave Mode Select,
         -- (6) Tx FIFO Half Empty, (5) DRR Over-run, (4) DRR Full, (3) DTR Under-run, (2) DTR Empty,
         -- (1) Slave MODF, (0) MODF |
-        IPISR       :   out std_logic_vector(31 downto 0);
+        IPISR       :   inout std_logic_vector(31 downto 0);
         
         -- IPIER : IP Interrupt Enable Register (R/W)
         -- *bits* | (31) ... (9) -> Reserved, (8) DRR_Not Empty, (7) Slave Mode Select, (6) Tx FIFO Half Empty,
@@ -99,15 +103,32 @@ architecture Behavioral of registers is
     signal wr_enable    :   std_logic;
     signal load_enable  :   std_logic;
     signal load_default :   std_logic_vector(31 downto 0);
+    signal strobe       :   std_logic_vector(1 downto 0);
+    signal en_1, en_2   :   std_logic;
+    signal tmp_flag     :   std_logic;
 
 begin
 
+    process (clk, rst_n)
+    begin
+        -- consider reset conditions
+        if rst_n =  '0' then
+            load_enable <= '1'; -- initiates loading of all registers to default values
+        elsif rising_edge(clk) then
+            load_enable <= '0';
+            -- if IPISR_en = '1' then
+                -- INTERRUPT   <= NOT INTERRUPT;
+            
+        end if;
+    end process;
+    
     SRR_reg    :   load_register
         port map (
             clk     => clk,
             wr_en   => SRR_en,
             load_en => load_enable,
             load    => load_default,
+            stb_in  => stb_in,
             d_in    => wr_data,
             d_out   => SRR
         );
@@ -118,6 +139,7 @@ begin
             wr_en   => SPICR_en,
             load_en => load_enable,
             load    => x"00000180",
+            stb_in  => stb_in,
             d_in    => wr_data,
             d_out   => SPICR
         );
@@ -128,6 +150,7 @@ begin
             wr_en   => SPISR_en,
             load_en => load_enable,
             load    => x"00000025",
+            stb_in  => stb_in,
             d_in    => wr_data,
             d_out   => SPISR
         );
@@ -138,6 +161,7 @@ begin
             wr_en   => SPIDTR_en,
             load_en => load_enable,
             load    => x"00000000",
+            stb_in  => stb_in,
             d_in    => wr_data,
             d_out   => SPIDTR
         );
@@ -149,6 +173,7 @@ begin
             wr_en   => SPIDRR_en,
             load_en => load_enable,
             load    => load_default,
+            stb_in  => stb_in,
             d_in    => wr_data,
             d_out   => SPIDRR
         );
@@ -159,6 +184,7 @@ begin
             wr_en   => SPISSR_en,
             load_en => load_enable,
             load    => load_default,
+            stb_in  => stb_in,
             d_in    => wr_data,
             d_out   => SPISSR
         );
@@ -169,6 +195,7 @@ begin
             wr_en   => Tx_FIFO_OCY_en,
             load_en => load_enable,
             load    => x"00000000",
+            stb_in  => stb_in,
             d_in    => wr_data,
             d_out   => Tx_FIFO_OCY
         );
@@ -179,6 +206,7 @@ begin
             wr_en   => Rx_FIFO_OCY_en,
             load_en => load_enable,
             load    => x"00000000",
+            stb_in  => stb_in,
             d_in    => wr_data,
             d_out   => Rx_FIFO_OCY
         );
@@ -189,11 +217,12 @@ begin
             wr_en   => DGIER_en,
             load_en => load_enable,
             load    => x"00000000",
+            stb_in  => stb_in,
             d_in    => wr_data,
             d_out   => Rx_FIFO_OCY
         );
-        
-    IPISR_reg   :   load_register
+    
+    IPISR_reg   :   toggle_on_write
         port map (
             clk     => clk,
             wr_en   => IPISR_en,
@@ -209,20 +238,9 @@ begin
             wr_en   => IPIER_en,
             load_en => load_enable,
             load    => x"00000000",
+            stb_in  => stb_in,
             d_in    => wr_data,
             d_out   => IPIER
         );
-        
-    -- write component map for each register
-    
-    process (clk, rst_n)
-    begin
-        -- consider reset conditions
-        if rising_edge(clk) then
-            wr_enable   <= '1';
-        end if;
-    end process;
-    
-
 
 end Behavioral;
