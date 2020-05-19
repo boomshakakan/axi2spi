@@ -30,7 +30,10 @@ entity read_channel_logic is
     Rx_FIFO_OCY_Read : IN STD_LOGIC_VECTOR((C_S_AXI_DATA_WIDTH-1) DOWNTO 0); -- SPI Receive FIFO Occupancy Register Read
     DGIER_Read : IN STD_LOGIC_VECTOR((C_S_AXI_DATA_WIDTH-1) DOWNTO 0);  -- Device Global Intterupt Enable Register Read
     IPISR_Read : IN STD_LOGIC_VECTOR((C_S_AXI_DATA_WIDTH-1) DOWNTO 0);  -- IP Interrupt Status Register Read
-    IPIER_Read : IN STD_LOGIC_VECTOR((C_S_AXI_DATA_WIDTH-1) DOWNTO 0)   -- IP Interrupt Enable Register Read
+    IPIER_Read : IN STD_LOGIC_VECTOR((C_S_AXI_DATA_WIDTH-1) DOWNTO 0);  -- IP Interrupt Enable Register Read
+    
+    temp_read_address_out : OUT STD_LOGIC_VECTOR((C_S_AXI_ADDR_WIDTH-1) DOWNTO 0);
+    SPIDRR_Read_en : OUT STD_LOGIC
   );
 end read_channel_logic;
 
@@ -65,23 +68,32 @@ begin
       rvalid <= '0';
       
     elsif (rising_edge(S_AXI_ACLK)) then
-      if ((S_AXI_ARVALID = '1') AND (S_AXI_RREADY = '1')) then
-        if (arready = '1') then  -- arready is dependant on ARVALID and RREADY
-          arready <= '0';
-          temp_read_address <= S_AXI_ARADDR;
-          rvalid <= '1'; -- Allows read_out_logic to output read from register
+      if (rvalid = '0') then
+        if (S_AXI_ARVALID = '1') then
+          if (arready = '1') then  -- arready is dependant on ARVALID
+            arready <= '0';
+            temp_read_address <= S_AXI_ARADDR;
+            rvalid <= '1'; -- Allows read_out_logic to output read from register
 
+          else
+            arready <= '1';
+            temp_read_address <= temp_read_address;
+            rvalid <= '0';
+
+          end if;
         else
-          arready <= '1';
+          arready <= '0';
           temp_read_address <= temp_read_address;
-          rvalid <='0';
+          rvalid <= '0';
 
         end if;
       else
-        arready <= '0';
-        temp_read_address <= temp_read_address;
-        rvalid <= '0';
-
+        if (S_AXI_RREADY = '1') then -- De-asserts rvalid after one clock when rready is high
+          arready <= '0';
+          temp_read_address <= S_AXI_ARADDR;
+          rvalid <= '0';
+           
+        end if;
       end if;
     end if;
 
@@ -89,71 +101,86 @@ begin
   
   S_AXI_ARREADY <= arready;
 
-  read_response_comb : process (S_AXI_ARESETN, rvalid)
+  read_response_comb : process (S_AXI_ARESETN, rvalid, S_AXI_RREADY)
   begin
 
     if (S_AXI_ARESETN = '0') then
       S_AXI_RDATA   <= (OTHERS => '0');
       S_AXI_RRESP   <= "00";
+      SPIDRR_Read_en <= '0';
       
-    elsif (rvalid = '1') then
+    elsif (rvalid = '1' AND (S_AXI_RREADY = '1')) then
       if (temp_read_address = SRR_ADDR) then
         S_AXI_RDATA <= (OTHERS => '0');
         S_AXI_RRESP <= "01";
+        SPIDRR_Read_en <= '0';
 
       elsif (temp_read_address = SPICR_ADDR) then
         S_AXI_RDATA <= SPICR_Read;
         S_AXI_RRESP <= "00";
+        SPIDRR_Read_en <= '0';
 
       elsif (temp_read_address = SPISR_ADDR) then
         S_AXI_RDATA <= SPISR_Read;
         S_AXI_RRESP <= "00";
+        SPIDRR_Read_en <= '0';
         
       elsif (temp_read_address = SPIDTR_ADDR) then
         S_AXI_RDATA <= (OTHERS => '0');
         S_AXI_RRESP <= "01";
+        SPIDRR_Read_en <= '0';
 
       elsif (temp_read_address = SPIDRR_ADDR) then
         S_AXI_RDATA <= SPIDRR_Read;
         S_AXI_RRESP <= "00";
+        SPIDRR_Read_en <= '1';
 
       elsif (temp_read_address = SPISSR_ADDR) then
         S_AXI_RDATA <= SPISSR_Read;
         S_AXI_RRESP <= "00";
+        SPIDRR_Read_en <= '0';
 
       elsif (temp_read_address = Tx_FIFO_OCY_ADDR) then
         S_AXI_RDATA <= Tx_FIFO_OCY_Read;
         S_AXI_RRESP <= "00";
+        SPIDRR_Read_en <= '0';
 
       elsif (temp_read_address = Rx_FIFO_OCY_ADDR) then
         S_AXI_RDATA <= Rx_FIFO_OCY_Read;
         S_AXI_RRESP <= "00";
+        SPIDRR_Read_en <= '0';
 
       elsif (temp_read_address = DGIER_ADDR) then
         S_AXI_RDATA <= DGIER_Read;
         S_AXI_RRESP <= "00";
+        SPIDRR_Read_en <= '0';
 
       elsif (temp_read_address = IPISR_ADDR) then
         S_AXI_RDATA <= IPISR_Read;
         S_AXI_RRESP <= "00";
+        SPIDRR_Read_en <= '0';
 
       elsif (temp_read_address = IPIER_ADDR) then
         S_AXI_RDATA <= IPIER_Read;
         S_AXI_RRESP <= "00";
+        SPIDRR_Read_en <= '0';
 
       else
         S_AXI_RDATA <= (OTHERS => '0');
         S_AXI_RRESP <= "11";
+        SPIDRR_Read_en <= '0';
 
       end if;
     else
       S_AXI_RDATA <= (OTHERS => '0');
       S_AXI_RRESP <= "00";
+      SPIDRR_Read_en <= '0';
 
     end if;
   
   end process read_response_comb;
 
   S_AXI_RVALID <= rvalid;
+  temp_read_address_out <= temp_read_address;
 
 end Behavioral;
