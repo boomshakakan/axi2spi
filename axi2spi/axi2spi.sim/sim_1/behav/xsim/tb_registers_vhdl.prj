@@ -3,6 +3,7 @@ vhdl xil_defaultlib  \
 "../../../../axi2spi.srcs/sources_1/new/components_pkg.vhd" \
 "../../../../axi2spi.srcs/sources_1/new/load_register.vhd" \
 "../../../../axi2spi.srcs/sources_1/new/registers.vhd" \
+"../../../../axi2spi.srcs/sources_1/new/toggle_on_write.vhd" \
 "../../../../axi2spi.srcs/sources_1/new/tb_registers.vhd" \
 
 # Do not sort compile order

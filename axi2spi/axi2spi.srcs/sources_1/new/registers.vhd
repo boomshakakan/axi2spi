@@ -5,6 +5,7 @@ use work.components_pkg.load_register;
 use work.components_pkg.toggle_on_write;
 
 entity registers is
+    generic (FIFO_NOT_EXIST :   std_logic);
     
     port (
         -- SYSTEM INTERFACE
@@ -13,9 +14,8 @@ entity registers is
         stb_in      :   in std_logic_vector(1 downto 0);  -- strobe signal for byte to be written 
         wr_data     :   in std_logic_vector(31 downto 0); -- data to be written
         
-        -- SYSTEM RESET OUTPUT FROM SRR & SYSTEM INTERRUPT
+        -- SYSTEM RESET OUTPUT FROM SRR
         SRR_RST     :   out std_logic;
-        -- INTERRUPT   :   out std_logic;
         
         -- REGISTER ENABLES
         SRR_en          :   in std_logic;
@@ -87,7 +87,7 @@ entity registers is
         -- *bits* | (31) ... (9) -> Reserved, (8) DRR_Not_Empty, (7) Slave Mode Select,
         -- (6) Tx FIFO Half Empty, (5) DRR Over-run, (4) DRR Full, (3) DTR Under-run, (2) DTR Empty,
         -- (1) Slave MODF, (0) MODF |
-        IPISR       :   inout std_logic_vector(31 downto 0);
+        IPISR       :   out std_logic_vector(31 downto 0);
         
         -- IPIER : IP Interrupt Enable Register (R/W)
         -- *bits* | (31) ... (9) -> Reserved, (8) DRR_Not Empty, (7) Slave Mode Select, (6) Tx FIFO Half Empty,
@@ -100,37 +100,65 @@ end registers;
 
 architecture Behavioral of registers is
 
+    signal reset        :   std_logic; -- internal software reset active low
     signal wr_enable    :   std_logic;
     signal load_enable  :   std_logic;
     signal load_default :   std_logic_vector(31 downto 0);
     signal strobe       :   std_logic_vector(1 downto 0);
     signal en_1, en_2   :   std_logic;
     signal tmp_flag     :   std_logic;
+    
+    -- NEED TO CORRECTLY IMPLEMENT 
+    signal SRR_read     :   std_logic_vector(31 downto 0) := (others => '0');
+    signal SPICR_read   :   std_logic_vector(31 downto 0) := (others => '0');
+    signal SPISR_read   :   std_logic_vector(31 downto 0) := (others => '0');
+    signal SPISSR_read  :   std_logic_vector(31 downto 0) := (others => '0');
+    
+    -- interrupts
+    signal IPISR_read   :   std_logic_vector(31 downto 0) := (others => '0');
+    signal IPIER_read   :   std_logic_vector(31 downto 0) := (others => '0');
 
 begin
 
     process (clk, rst_n)
     begin
         -- consider reset conditions
-        if rst_n =  '0' then
+        if (rst_n =  '0') or (reset = '0') then
+            reset       <= '1'; -- initiatiate reset procedure but flip reset bit for next cycle
             load_enable <= '1'; -- initiates loading of all registers to default values
         elsif rising_edge(clk) then
+            reset       <= '1';
             load_enable <= '0';
+            -- CHECK IF WRITING RESET CONDITION TO SRR 
+            -- *THIS WILL STILL WRITE DATA TO REGISTER*
+            if SRR_read = x"0000000A" then
+                reset   <= '0';
+            end if;
+            
             -- if IPISR_en = '1' then
                 -- INTERRUPT   <= NOT INTERRUPT;
             
         end if;
     end process;
     
+    -- register async assignment
+    SRR     <= SRR_read;
+    SRR_RST <= reset;
+    
+    -- interrupts
+    
+    
+    strobe  <= stb_in;
+    
     SRR_reg    :   load_register
         port map (
             clk     => clk,
             wr_en   => SRR_en,
             load_en => load_enable,
-            load    => load_default,
-            stb_in  => stb_in,
+            load    => x"00000000",
+            stb_in  => strobe,
             d_in    => wr_data,
-            d_out   => SRR
+            d_out   => SRR_read
         );
         
     SPICR_reg   :   load_register
@@ -242,5 +270,7 @@ begin
             d_in    => wr_data,
             d_out   => IPIER
         );
+        
+    
 
 end Behavioral;

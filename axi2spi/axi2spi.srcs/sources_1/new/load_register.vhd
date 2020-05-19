@@ -7,8 +7,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 
 entity load_register is
     port (
-        -- SYSTEM INTERFACE 
-        -- include async set condition?
+        -- SYSTEM INTERFACE
         clk     :   in std_logic;
         wr_en   :   in std_logic; -- enables data to be written to register
         load_en :   in std_logic; -- enables value in load to be written to register asynchronously
@@ -25,7 +24,7 @@ architecture Behavioral of load_register is
 begin
 
     -- load_en, wr_en or both for sensitivity list?
-    process (clk, load_en)
+    process (clk, wr_en, load_en)
     begin
     
         if load_en = '1' then

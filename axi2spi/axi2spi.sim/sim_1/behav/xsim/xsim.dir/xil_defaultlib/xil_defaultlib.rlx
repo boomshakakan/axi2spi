@@ -2,7 +2,8 @@
 2019.2
 Nov  6 2019
 21:57:16
-D:/Projects/training/axi2spi/axi2spi/axi2spi.srcs/sources_1/new/components_pkg.vhd,1589482512,vhdl,D:/Projects/training/axi2spi/axi2spi/axi2spi.srcs/sources_1/new/tb_registers.vhd,,,components_pkg,,,,,,,,
-D:/Projects/training/axi2spi/axi2spi/axi2spi.srcs/sources_1/new/load_register.vhd,1589486921,vhdl,,,,load_register,,,,,,,,
-D:/Projects/training/axi2spi/axi2spi/axi2spi.srcs/sources_1/new/registers.vhd,1589487791,vhdl,,,,registers,,,,,,,,
-D:/Projects/training/axi2spi/axi2spi/axi2spi.srcs/sources_1/new/tb_registers.vhd,1589488252,vhdl,,,,tb_registers,,,,,,,,
+D:/Projects/training/axi2spi/axi2spi/axi2spi.srcs/sources_1/new/components_pkg.vhd,1589847739,vhdl,D:/Projects/training/axi2spi/axi2spi/axi2spi.srcs/sources_1/new/tb_registers.vhd,,,components_pkg,,,,,,,,
+D:/Projects/training/axi2spi/axi2spi/axi2spi.srcs/sources_1/new/load_register.vhd,1589847718,vhdl,,,,load_register,,,,,,,,
+D:/Projects/training/axi2spi/axi2spi/axi2spi.srcs/sources_1/new/registers.vhd,1589847342,vhdl,,,,registers,,,,,,,,
+D:/Projects/training/axi2spi/axi2spi/axi2spi.srcs/sources_1/new/tb_registers.vhd,1589848229,vhdl,,,,tb_registers,,,,,,,,
+D:/Projects/training/axi2spi/axi2spi/axi2spi.srcs/sources_1/new/toggle_on_write.vhd,1589608854,vhdl,,,,toggle_on_write,,,,,,,,
