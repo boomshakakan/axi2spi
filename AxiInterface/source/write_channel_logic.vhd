@@ -38,7 +38,7 @@ entity write_channel_logic is
     IPIER_En : OUT STD_LOGIC;  -- IP Interrupt Enable Register Enable
     
     tx_full : IN STD_LOGIC;
-    arready : IN STD_LOGIC;
+    rvalid : IN STD_LOGIC;
     temp_read_address : IN STD_LOGIC_VECTOR((C_S_AXI_ADDR_WIDTH-1) DOWNTO 0)
   );
 end write_channel_logic;
@@ -78,7 +78,7 @@ begin
       
     elsif (rising_edge(S_AXI_ACLK)) then
       if (write_address_stored = '0') then
-        if ((S_AXI_AWVALID = '1') AND (S_AXI_BREADY = '1')) then
+        if (S_AXI_AWVALID = '1') then
           if (awready = '1') then
             awready <= '0';
             temp_write_address <= S_AXI_AWADDR;
@@ -97,7 +97,7 @@ begin
         
         end if;
       else
-        if (write_data_stored = '1') then
+        if ((write_data_stored = '1') AND (S_AXI_BREADY = '1')) then
           write_address_stored <= '0';
           
         end if;
@@ -119,7 +119,7 @@ begin
       
     elsif (rising_edge(S_AXI_ACLK)) then
       if (write_data_stored = '0') then
-        if ((S_AXI_WVALID = '1') AND (S_AXI_BREADY = '1')) then
+        if (S_AXI_WVALID = '1') then
           if (wready = '1') then
             wready <= '0';
             temp_write_data <= S_AXI_WDATA;
@@ -141,7 +141,7 @@ begin
         
         end if;
       else
-        if (write_address_stored = '1') then
+        if ((write_address_stored = '1') AND (S_AXI_BREADY = '1')) then
           write_data_stored <= '0';
           Strobe <= "0000";
           
@@ -155,7 +155,7 @@ begin
   
   bvalid <= write_address_stored AND write_data_stored;
   
-  write_response_comb : process (S_AXI_ARESETN, bvalid)
+  write_response_comb : process (S_AXI_ARESETN, bvalid, S_AXI_BREADY)
   begin
   
     if (S_AXI_ARESETN = '0') then
@@ -168,73 +168,19 @@ begin
       IPISR_En  <= '0';
       IPIER_En  <= '0';
       
-    elsif (bvalid = '1') then
-      if (S_AXI_BREADY = '1') then
-        if (temp_write_address = SRR_ADDR) then
-          S_AXI_BRESP <= "00";
-          SRR_En    <= '1';
-          SPICR_En  <= '0';
-          SPIDTR_En <= '0';
-          SPISSR_En <= '0';
-          DGIER_En  <= '0';
-          IPISR_En  <= '0';
-          IPIER_En  <= '0';
+    elsif ((bvalid = '1') AND (S_AXI_BREADY = '1')) then
+      if (temp_write_address = SRR_ADDR) then
+        S_AXI_BRESP <= "00";
+        SRR_En    <= '1';
+        SPICR_En  <= '0';
+        SPIDTR_En <= '0';
+        SPISSR_En <= '0';
+        DGIER_En  <= '0';
+        IPISR_En  <= '0';
+        IPIER_En  <= '0';
           
-        elsif (temp_write_address = SPICR_ADDR) then
-          if (arready = '1' AND temp_read_address = SPICR_ADDR) then
-            S_AXI_BRESP <= "01";
-            SRR_En    <= '0';
-            SPICR_En  <= '0';
-            SPIDTR_En <= '0';
-            SPISSR_En <= '0';
-            DGIER_En  <= '0';
-            IPISR_En  <= '0';
-            IPIER_En  <= '0';
-            
-          else
-            S_AXI_BRESP <= "00";
-            SRR_En    <= '0';
-            SPICR_En  <= '1';
-            SPIDTR_En <= '0';
-            SPISSR_En <= '0';
-            DGIER_En  <= '0';
-            IPISR_En  <= '0';
-            IPIER_En  <= '0';
-
-          end if;
-        elsif (temp_write_address = SPISR_ADDR) then
-          S_AXI_BRESP <= "01";
-          SRR_En    <= '0';
-          SPICR_En  <= '0';
-          SPIDTR_En <= '0';
-          SPISSR_En <= '0';
-          DGIER_En  <= '0';
-          IPISR_En  <= '0';
-          IPIER_En  <= '0';
-          
-        elsif (temp_write_address = SPIDTR_ADDR) then
-          if (tx_full = '0') then
-            S_AXI_BRESP <= "00";
-            SRR_En    <= '0';
-            SPICR_En  <= '0';
-            SPIDTR_En <= '1';
-            SPISSR_En <= '0';
-            DGIER_En  <= '0';
-            IPISR_En  <= '0';
-            IPIER_En  <= '0';
-          
-          else
-            S_AXI_BRESP <= "01";
-            SRR_En    <= '0';
-            SPICR_En  <= '0';
-            SPIDTR_En <= '0';
-            SPISSR_En <= '0';
-            DGIER_En  <= '0';
-            IPISR_En  <= '0';
-            IPIER_En  <= '0';
-            
-          end if;
-        elsif (temp_write_address = SPIDRR_ADDR) then
+      elsif (temp_write_address = SPICR_ADDR) then
+        if (rvalid = '1' AND temp_read_address = SPICR_ADDR) then
           S_AXI_BRESP <= "01";
           SRR_En    <= '0';
           SPICR_En  <= '0';
@@ -244,125 +190,177 @@ begin
           IPISR_En  <= '0';
           IPIER_En  <= '0';
             
-        elsif (temp_write_address = SPISSR_ADDR) then
-          if (arready = '1' AND temp_read_address = SPISSR_ADDR) then
-            S_AXI_BRESP <= "01";
-            SRR_En    <= '0';
-            SPICR_En  <= '0';
-            SPIDTR_En <= '0';
-            SPISSR_En <= '0';
-            DGIER_En  <= '0';
-            IPISR_En  <= '0';
-            IPIER_En  <= '0';
-            
-          else
-            S_AXI_BRESP <= "00";
-            SRR_En    <= '0';
-            SPICR_En  <= '0';
-            SPIDTR_En <= '0';
-            SPISSR_En <= '1';
-            DGIER_En  <= '0';
-            IPISR_En  <= '0';
-            IPIER_En  <= '0';
-        
-          end if;
-        elsif (temp_write_address = Tx_FIFO_OCY_ADDR) then
-          S_AXI_BRESP <= "01";
-          SRR_En    <= '0';
-          SPICR_En  <= '0';
-          SPIDTR_En <= '0';
-          SPISSR_En <= '0';
-          DGIER_En  <= '0';
-          IPISR_En  <= '0';
-          IPIER_En  <= '0';
-          
-        elsif (temp_write_address = Rx_FIFO_OCY_ADDR) then
-          S_AXI_BRESP <= "01";
-          SRR_En    <= '0';
-          SPICR_En  <= '0';
-          SPIDTR_En <= '0';
-          SPISSR_En <= '0';
-          DGIER_En  <= '0';
-          IPISR_En  <= '0';
-          IPIER_En  <= '0';
-          
-        elsif (temp_write_address = DGIER_ADDR) then
-          if (arready = '1' AND temp_read_address = DGIER_ADDR) then
-            S_AXI_BRESP <= "01";
-            SRR_En    <= '0';
-            SPICR_En  <= '0';
-            SPIDTR_En <= '0';
-            SPISSR_En <= '0';
-            DGIER_En  <= '0';
-            IPISR_En  <= '0';
-            IPIER_En  <= '0';
-            
-          else
-            S_AXI_BRESP <= "00";
-            SRR_En    <= '0';
-            SPICR_En  <= '0';
-            SPIDTR_En <= '0';
-            SPISSR_En <= '0';
-            DGIER_En  <= '1';
-            IPISR_En  <= '0';
-            IPIER_En  <= '0';
-
-          end if;
-        elsif (temp_write_address = IPISR_ADDR) then
-          if (arready = '1' AND temp_read_address = IPISR_ADDR) then
-            S_AXI_BRESP <= "01";
-            SRR_En    <= '0';
-            SPICR_En  <= '0';
-            SPIDTR_En <= '0';
-            SPISSR_En <= '0';
-            DGIER_En  <= '0';
-            IPISR_En  <= '0';
-            IPIER_En  <= '0';
-            
-          else
-            S_AXI_BRESP <= "00";
-            SRR_En    <= '0';
-            SPICR_En  <= '0';
-            SPIDTR_En <= '0';
-            SPISSR_En <= '0';
-            DGIER_En  <= '0';
-            IPISR_En  <= '1';
-            IPIER_En  <= '0';
-            
-          end if;
-        elsif (temp_write_address = IPIER_ADDR) then
-          if (arready = '1' AND temp_read_address = IPIER_ADDR) then
-            S_AXI_BRESP <= "01";
-            SRR_En    <= '0';
-            SPICR_En  <= '0';
-            SPIDTR_En <= '0';
-            SPISSR_En <= '0';
-            DGIER_En  <= '0';
-            IPISR_En  <= '0';
-            IPIER_En  <= '0';
-            
-          else
-            S_AXI_BRESP <= "00";
-            SRR_En    <= '0';
-            SPICR_En  <= '0';
-            SPIDTR_En <= '0';
-            SPISSR_En <= '0';
-            DGIER_En  <= '0';
-            IPISR_En  <= '0';
-            IPIER_En  <= '1';
-        
-          end if;
         else
-          S_AXI_BRESP <= "11";
+          S_AXI_BRESP <= "00";
+          SRR_En    <= '0';
+          SPICR_En  <= '1';
+          SPIDTR_En <= '0';
+          SPISSR_En <= '0';
+          DGIER_En  <= '0';
+          IPISR_En  <= '0';
+          IPIER_En  <= '0';
+
+        end if;
+      elsif (temp_write_address = SPISR_ADDR) then
+        S_AXI_BRESP <= "01";
+        SRR_En    <= '0';
+        SPICR_En  <= '0';
+        SPIDTR_En <= '0';
+        SPISSR_En <= '0';
+        DGIER_En  <= '0';
+        IPISR_En  <= '0';
+        IPIER_En  <= '0';
+          
+      elsif (temp_write_address = SPIDTR_ADDR) then
+        if (tx_full = '0') then
+          S_AXI_BRESP <= "00";
+          SRR_En    <= '0';
+          SPICR_En  <= '0';
+          SPIDTR_En <= '1';
+          SPISSR_En <= '0';
+          DGIER_En  <= '0';
+          IPISR_En  <= '0';
+          IPIER_En  <= '0';
+          
+        else
+          S_AXI_BRESP <= "01";
           SRR_En    <= '0';
           SPICR_En  <= '0';
           SPIDTR_En <= '0';
           SPISSR_En <= '0';
+          DGIER_En  <= '0';
+          IPISR_En  <= '0';
+          IPIER_En  <= '0';
+           
+        end if;
+      elsif (temp_write_address = SPIDRR_ADDR) then
+        S_AXI_BRESP <= "01";
+        SRR_En    <= '0';
+        SPICR_En  <= '0';
+        SPIDTR_En <= '0';
+        SPISSR_En <= '0';
+        DGIER_En  <= '0';
+        IPISR_En  <= '0';
+        IPIER_En  <= '0';
+            
+      elsif (temp_write_address = SPISSR_ADDR) then
+        if (rvalid = '1' AND temp_read_address = SPISSR_ADDR) then
+          S_AXI_BRESP <= "01";
+          SRR_En    <= '0';
+          SPICR_En  <= '0';
+          SPIDTR_En <= '0';
+          SPISSR_En <= '0';
+          DGIER_En  <= '0';
+          IPISR_En  <= '0';
+          IPIER_En  <= '0';
+            
+        else
+          S_AXI_BRESP <= "00";
+          SRR_En    <= '0';
+          SPICR_En  <= '0';
+          SPIDTR_En <= '0';
+          SPISSR_En <= '1';
           DGIER_En  <= '0';
           IPISR_En  <= '0';
           IPIER_En  <= '0';
         
         end if;
+      elsif (temp_write_address = Tx_FIFO_OCY_ADDR) then
+        S_AXI_BRESP <= "01";
+        SRR_En    <= '0';
+        SPICR_En  <= '0';
+        SPIDTR_En <= '0';
+        SPISSR_En <= '0';
+        DGIER_En  <= '0';
+        IPISR_En  <= '0';
+        IPIER_En  <= '0';
+          
+      elsif (temp_write_address = Rx_FIFO_OCY_ADDR) then
+        S_AXI_BRESP <= "01";
+        SRR_En    <= '0';
+        SPICR_En  <= '0';
+        SPIDTR_En <= '0';
+        SPISSR_En <= '0';
+        DGIER_En  <= '0';
+        IPISR_En  <= '0';
+        IPIER_En  <= '0';
+          
+      elsif (temp_write_address = DGIER_ADDR) then
+        if (rvalid = '1' AND temp_read_address = DGIER_ADDR) then
+          S_AXI_BRESP <= "01";
+          SRR_En    <= '0';
+          SPICR_En  <= '0';
+          SPIDTR_En <= '0';
+          SPISSR_En <= '0';
+          DGIER_En  <= '0';
+          IPISR_En  <= '0';
+          IPIER_En  <= '0';
+            
+        else
+          S_AXI_BRESP <= "00";
+          SRR_En    <= '0';
+          SPICR_En  <= '0';
+          SPIDTR_En <= '0';
+          SPISSR_En <= '0';
+          DGIER_En  <= '1';
+          IPISR_En  <= '0';
+          IPIER_En  <= '0';
+
+        end if;
+      elsif (temp_write_address = IPISR_ADDR) then
+        if (rvalid = '1' AND temp_read_address = IPISR_ADDR) then
+          S_AXI_BRESP <= "01";
+          SRR_En    <= '0';
+          SPICR_En  <= '0';
+          SPIDTR_En <= '0';
+          SPISSR_En <= '0';
+          DGIER_En  <= '0';
+          IPISR_En  <= '0';
+          IPIER_En  <= '0';
+            
+        else
+          S_AXI_BRESP <= "00";
+          SRR_En    <= '0';
+          SPICR_En  <= '0';
+          SPIDTR_En <= '0';
+          SPISSR_En <= '0';
+          DGIER_En  <= '0';
+          IPISR_En  <= '1';
+          IPIER_En  <= '0';
+            
+        end if;
+      elsif (temp_write_address = IPIER_ADDR) then
+        if (rvalid = '1' AND temp_read_address = IPIER_ADDR) then
+          S_AXI_BRESP <= "01";
+          SRR_En    <= '0';
+          SPICR_En  <= '0';
+          SPIDTR_En <= '0';
+          SPISSR_En <= '0';
+          DGIER_En  <= '0';
+          IPISR_En  <= '0';
+          IPIER_En  <= '0';
+            
+        else
+          S_AXI_BRESP <= "00";
+          SRR_En    <= '0';
+          SPICR_En  <= '0';
+          SPIDTR_En <= '0';
+          SPISSR_En <= '0';
+          DGIER_En  <= '0';
+          IPISR_En  <= '0';
+          IPIER_En  <= '1';
+        
+        end if;
+      else
+        S_AXI_BRESP <= "11";
+        SRR_En    <= '0';
+        SPICR_En  <= '0';
+        SPIDTR_En <= '0';
+        SPISSR_En <= '0';
+        DGIER_En  <= '0';
+        IPISR_En  <= '0';
+        IPIER_En  <= '0';
+        
       end if;
     else
       S_AXI_BRESP <= "00";
