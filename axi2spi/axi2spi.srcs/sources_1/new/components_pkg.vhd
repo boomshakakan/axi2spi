@@ -8,7 +8,7 @@ package components_pkg is
         port (
             clk         :   in std_logic;
             rst_n       :   in std_logic;
-            stb_in      :   in std_logic_vector(1 downto 0);
+            stb_in      :   in std_logic_vector(3 downto 0);
             wr_data     :   in std_logic_vector(31 downto 0); -- input to be written to register
             
             SRR_RST     :   out std_logic;
@@ -47,7 +47,7 @@ package components_pkg is
             wr_en   :   in std_logic;
             load_en :   in std_logic;
             load    :   in std_logic_vector(31 downto 0);
-            stb_in  :   in std_logic_vector(1 downto 0);
+            stb_in  :   in std_logic_vector(3 downto 0);
             d_in    :   in std_logic_vector(31 downto 0);
             d_out   :   out std_logic_vector(31 downto 0)
         );

@@ -1,5 +1,6 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.NUMERIC_STD.ALL;
 
 -- REGISTER MODULE 
 -- (05/11) got rid of rst input - rst will be checked in registers file to set defaults to
@@ -12,7 +13,7 @@ entity load_register is
         wr_en   :   in std_logic; -- enables data to be written to register
         load_en :   in std_logic; -- enables value in load to be written to register asynchronously
         load    :   in std_logic_vector(31 downto 0);
-        stb_in  :   in std_logic_vector(1 downto 0);
+        stb_in  :   in std_logic_vector(3 downto 0);
         -- DATA
         d_in    :   in std_logic_vector(31 downto 0);
         d_out   :   out std_logic_vector(31 downto 0) 
@@ -23,7 +24,6 @@ architecture Behavioral of load_register is
 
 begin
 
-    -- load_en, wr_en or both for sensitivity list?
     process (clk, wr_en, load_en)
     begin
     
@@ -31,22 +31,20 @@ begin
             d_out   <= load;
         elsif rising_edge(clk) then
             if wr_en = '1' then
-                case stb_in is
-                    when "00"   =>
-                        d_out(7 downto 0)   <= d_in(7 downto 0);
-                    when "01"   =>
-                        d_out(15 downto 8)  <= d_in(15 downto 8);
-                    when "10"   =>
-                        d_out(23 downto 16) <= d_in(23 downto 16);
-                    when "11"   =>
-                        d_out(31 downto 24) <= d_in(31 downto 24);
-                    -- NOT SURE WHAT TO DO IN OTHERS CASE POSSIBLY ASSERT AND REPORT?
-                    when others => 
-                        d_out   <= d_in;
-                end case;
+                for i in 0 to 3 loop -- loop length of stb_in
+                    if stb_in(i) = '1' then
+                        d_out(((7*(i+1))+i) downto (8*i)) <= d_in(((7*(i+1))+i) downto (8*i));
+                    end if;
+                end loop;
             end if;
-        end if; 
-
+        end if;
+        
+        -- i=0      7*(1)+0   <=  8*0 = 7  <= 0
+        -- i=1      7*(2)+1   <=  8*1 = 15 <= 8
+        -- i=2      7*(3)+2   <=  8*2 = 23 <= 16 
+        -- i=3      7*(4)+3   <=  8*3 = 31 <= 24 
+        
+        
     end process;
 
 end Behavioral;

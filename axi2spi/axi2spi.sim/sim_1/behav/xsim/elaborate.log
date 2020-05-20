@@ -14,6 +14,6 @@ Compiling package xil_defaultlib.components_pkg
 Compiling package ieee.numeric_std
 Compiling architecture behavioral of entity xil_defaultlib.load_register [load_register_default]
 Compiling architecture behavioral of entity xil_defaultlib.toggle_on_write [toggle_on_write_default]
-Compiling architecture behavioral of entity xil_defaultlib.registers [registers_default]
+Compiling architecture behavioral of entity xil_defaultlib.registers [\registers(fifo_not_exist='1')\]
 Compiling architecture behavioral of entity xil_defaultlib.tb_registers
 Built simulation snapshot tb_registers_behav

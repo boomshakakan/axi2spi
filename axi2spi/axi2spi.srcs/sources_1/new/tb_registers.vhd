@@ -7,11 +7,10 @@ end tb_registers;
 
 architecture Behavioral of tb_registers is
 
-    constant fifo_no_exist  :   std_logic := '0';
+    constant fifo_no_exist  :   std_logic := '1';
     signal clk_i    :   std_logic := '0';
     signal rst_i    :   std_logic;
-    signal en_i     :   std_logic;
-    signal stb_i    :   std_logic_vector(1 downto 0);
+    signal stb_i    :   std_logic_vector(3 downto 0);
     signal data_i   :   std_logic_vector(31 downto 0);
     -- signal data_o   :   std_logic_vector(31 downto 0);
     
@@ -29,13 +28,19 @@ begin
     rst_i   <= '0', '1' after 50ns;
     
     data_i  <= x"0000000A";
-    stb_i   <= "00";
+    stb_i   <= "1111";
     
     process
     begin
         en_0    <= '1';
         wait for 100ns;
         en_0    <= '0';
+        en_6    <= '1';
+        wait for 50ns;
+        en_6    <= '0';
+        en_7    <= '1';
+        wait for 50ns;
+        en_7    <= '0';
 
     end process DUT;
     

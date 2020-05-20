@@ -11,7 +11,7 @@ entity registers is
         -- SYSTEM INTERFACE
         clk         :   in std_logic;
         rst_n       :   in std_logic;
-        stb_in      :   in std_logic_vector(1 downto 0);  -- strobe signal for byte to be written 
+        stb_in      :   in std_logic_vector(3 downto 0);  -- strobe signal for byte to be written 
         wr_data     :   in std_logic_vector(31 downto 0); -- data to be written
         
         -- SYSTEM RESET OUTPUT FROM SRR
@@ -104,7 +104,7 @@ architecture Behavioral of registers is
     signal wr_enable    :   std_logic;
     signal load_enable  :   std_logic;
     signal load_default :   std_logic_vector(31 downto 0);
-    signal strobe       :   std_logic_vector(1 downto 0);
+    signal strobe       :   std_logic_vector(3 downto 0);
     signal en_1, en_2   :   std_logic;
     signal tmp_flag     :   std_logic;
     
@@ -146,8 +146,6 @@ begin
     SRR_RST <= reset;
     
     -- interrupts
-    
-    
     strobe  <= stb_in;
     
     SRR_reg    :   load_register
@@ -155,7 +153,7 @@ begin
             clk     => clk,
             wr_en   => SRR_en,
             load_en => load_enable,
-            load    => x"00000000",
+            load    => load_default,
             stb_in  => strobe,
             d_in    => wr_data,
             d_out   => SRR_read
@@ -217,27 +215,31 @@ begin
             d_out   => SPISSR
         );
         
-    Tx_FIFO_OCY_reg :   load_register
-        port map (
-            clk     => clk,
-            wr_en   => Tx_FIFO_OCY_en,
-            load_en => load_enable,
-            load    => x"00000000",
-            stb_in  => stb_in,
-            d_in    => wr_data,
-            d_out   => Tx_FIFO_OCY
-        );
+    FIFO_REGS   :   if FIFO_NOT_EXIST = '0' generate
         
-    Rx_FIFO_OCY_reg :   load_register
-        port map (
-            clk     => clk,
-            wr_en   => Rx_FIFO_OCY_en,
-            load_en => load_enable,
-            load    => x"00000000",
-            stb_in  => stb_in,
-            d_in    => wr_data,
-            d_out   => Rx_FIFO_OCY
-        );
+        Tx_FIFO_OCY_reg :   load_register
+            port map (
+                clk     => clk,
+                wr_en   => Tx_FIFO_OCY_en,
+                load_en => load_enable,
+                load    => x"00000000",
+                stb_in  => stb_in,
+                d_in    => wr_data,
+                d_out   => Tx_FIFO_OCY
+            );
+            
+        Rx_FIFO_OCY_reg :   load_register
+            port map (
+                clk     => clk,
+                wr_en   => Rx_FIFO_OCY_en,
+                load_en => load_enable,
+                load    => x"00000000",
+                stb_in  => stb_in,
+                d_in    => wr_data,
+                d_out   => Rx_FIFO_OCY
+            );
+    
+    end generate FIFO_REGS;
         
     DGIER_reg   :   load_register
         port map (
@@ -247,7 +249,7 @@ begin
             load    => x"00000000",
             stb_in  => stb_in,
             d_in    => wr_data,
-            d_out   => Rx_FIFO_OCY
+            d_out   => DGIER
         );
     
     IPISR_reg   :   toggle_on_write
@@ -270,7 +272,5 @@ begin
             d_in    => wr_data,
             d_out   => IPIER
         );
-        
-    
 
 end Behavioral;
