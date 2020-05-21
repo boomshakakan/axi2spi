@@ -2,6 +2,9 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.STD_LOGIC_UNSIGNED.ALL;
 
+use work.axi_spi_components_pkg.read_channel_logic;
+use work.axi_spi_components_pkg.write_channel_logic;
+ 
 entity Axi4Lite_Interface is
   Generic (
     C_BASEADDR : STD_LOGIC_VECTOR;
@@ -58,87 +61,12 @@ entity Axi4Lite_Interface is
     IPISR_Read : IN STD_LOGIC_VECTOR((C_S_AXI_DATA_WIDTH-1) DOWNTO 0);  -- IP Interrupt Status Register Read
     IPIER_Read : IN STD_LOGIC_VECTOR((C_S_AXI_DATA_WIDTH-1) DOWNTO 0);  -- IP Interrupt Enable Register Read
     
-    SPIDRR_Read_en : OUT STD_LOGIC                                      -- Enable read for DRR
+    SPIDRR_Read_en : OUT STD_LOGIC;                                      -- Enable read for DRR
+    SPISR_Read_en : OUT STD_LOGIC
   );
 end Axi4Lite_Interface;
 
 architecture Structural of Axi4Lite_Interface is
-
-  component write_channel_logic
-    Generic (
-      C_BASEADDR : STD_LOGIC_VECTOR;
-      C_HIGHADDR : STD_LOGIC_VECTOR;
-      C_S_AXI_ADDR_WIDTH : INTEGER := 32;
-      C_S_AXI_DATA_WIDTH : INTEGER := 32
-    );
-    Port (
-      S_AXI_ACLK    : IN STD_LOGIC;    -- Clock
-      S_AXI_ARESETN : IN STD_LOGIC;    -- Reset Active Low
-    
-      S_AXI_AWADDR  : IN STD_LOGIC_VECTOR((C_S_AXI_ADDR_WIDTH-1) DOWNTO 0); -- Write Address
-      S_AXI_AWVALID : IN STD_LOGIC;                                         -- Write Address Valid
-      S_AXI_AWREADY : OUT STD_LOGIC;                                        -- Write Address Ready
-    
-      S_AXI_WDATA  : IN STD_LOGIC_VECTOR((C_S_AXI_DATA_WIDTH-1) DOWNTO 0); -- Write Data
-      S_AXI_WSTB   : IN STD_LOGIC_VECTOR(3 DOWNTO 0); -- Write Strobes
-      S_AXI_WVALID : IN STD_LOGIC;                                         -- Write Valid
-      S_AXI_WREADY : OUT STD_LOGIC;                                        -- Write Ready
-    
-      S_AXI_BRESP  : OUT STD_LOGIC_VECTOR(1 DOWNTO 0); -- Write Response
-      S_AXI_BVALID : OUT STD_LOGIC;                    -- Write Response Valid
-      S_AXI_BREADY : IN STD_LOGIC;                     -- Write Response Ready
-    
-      WriteToReg : OUT STD_LOGIC_VECTOR((C_S_AXI_DATA_WIDTH-1) DOWNTO 0); -- Input Data
-      Strobe : OUT STD_LOGIC_VECTOR(3 DOWNTO 0); -- Strobe sent out to registers
-    
-      SRR_En : OUT STD_LOGIC;    -- Software Reset Register Enable
-      SPICR_En : OUT STD_LOGIC;  -- SPI Control Register Enable
-      SPIDTR_En : OUT STD_LOGIC; -- SPI Data Transmit Register Enable
-      SPISSR_En : OUT STD_LOGIC; -- SPI Slave Select Register Enable
-      DGIER_En : OUT STD_LOGIC;  -- Device Global Interrupt Enable Register Enable
-      IPISR_En : OUT STD_LOGIC;  -- IP Interrupt Status Register Enable
-      IPIER_En : OUT STD_LOGIC;  -- IP Interrupt Enable Register Enable
-    
-      tx_full : IN STD_LOGIC;
-      rvalid : IN STD_LOGIC;
-      temp_read_address : IN STD_LOGIC_VECTOR((C_S_AXI_ADDR_WIDTH-1) DOWNTO 0)
-    );
-  end component;
-  
-  component read_channel_logic
-    Generic (
-      C_BASEADDR : STD_LOGIC_VECTOR;
-      C_HIGHADDR : STD_LOGIC_VECTOR;
-      C_S_AXI_ADDR_WIDTH : INTEGER := 32;
-      C_S_AXI_DATA_WIDTH : INTEGER := 32
-    );
-    Port (
-      S_AXI_ACLK    : IN STD_LOGIC;    -- Clock
-      S_AXI_ARESETN : IN STD_LOGIC;    -- Reset Active Low
-    
-      S_AXI_ARADDR  : IN STD_LOGIC_VECTOR((C_S_AXI_ADDR_WIDTH-1) DOWNTO 0); -- Read Address
-      S_AXI_ARVALID : IN STD_LOGIC;                                         -- Read Address Valid
-      S_AXI_ARREADY : OUT STD_LOGIC;                                        -- Read Address Ready
-    
-      S_AXI_RDATA  : OUT STD_LOGIC_VECTOR((C_S_AXI_DATA_WIDTH-1) DOWNTO 0); -- Read Data
-      S_AXI_RRESP  : OUT STD_LOGIC_VECTOR(1 DOWNTO 0);                      -- Read Response
-      S_AXI_RVALID : OUT STD_LOGIC;                                         -- Read Valid
-      S_AXI_RREADY : IN STD_LOGIC;                                          -- Read Ready
-    
-      SPICR_Read : IN STD_LOGIC_VECTOR((C_S_AXI_DATA_WIDTH-1) DOWNTO 0);  -- SPI Control Register Read
-      SPISR_Read : IN STD_LOGIC_VECTOR((C_S_AXI_DATA_WIDTH-1) DOWNTO 0);  -- SPI Status Register Read
-      SPIDRR_Read : IN STD_LOGIC_VECTOR((C_S_AXI_DATA_WIDTH-1) DOWNTO 0); -- SPI Data Receive Register Read
-      SPISSR_Read : IN STD_LOGIC_VECTOR((C_S_AXI_DATA_WIDTH-1) DOWNTO 0); -- SPI Slave Select Register Read
-      Tx_FIFO_OCY_Read : IN STD_LOGIC_VECTOR((C_S_AXI_DATA_WIDTH-1) DOWNTO 0); -- SPI Transmit FIFO Occupancy Register Read
-      Rx_FIFO_OCY_Read : IN STD_LOGIC_VECTOR((C_S_AXI_DATA_WIDTH-1) DOWNTO 0); -- SPI Receive FIFO Occupancy Register Read
-      DGIER_Read : IN STD_LOGIC_VECTOR((C_S_AXI_DATA_WIDTH-1) DOWNTO 0);  -- Device Global Intterupt Enable Register Read
-      IPISR_Read : IN STD_LOGIC_VECTOR((C_S_AXI_DATA_WIDTH-1) DOWNTO 0);  -- IP Interrupt Status Register Read
-      IPIER_Read : IN STD_LOGIC_VECTOR((C_S_AXI_DATA_WIDTH-1) DOWNTO 0);   -- IP Interrupt Enable Register Read
-      
-      temp_read_address_out : OUT STD_LOGIC_VECTOR((C_S_AXI_ADDR_WIDTH-1) DOWNTO 0);
-      SPIDRR_Read_en : OUT STD_LOGIC
-    );
-  end component;
   
   SIGNAL rvalid : STD_LOGIC;
   SIGNAL temp_read_address : STD_LOGIC_VECTOR((C_S_AXI_ADDR_WIDTH-1) DOWNTO 0);
@@ -202,7 +130,8 @@ begin
       IPISR_Read => IPISR_Read,
       IPIER_Read => IPIER_Read,
       temp_read_address_out => temp_read_address,
-      SPIDRR_Read_en => SPIDRR_Read_en
+      SPIDRR_Read_en => SPIDRR_Read_en,
+      SPISR_Read_en => SPISR_Read_en
     );
       
   S_AXI_RVALID <= rvalid;
