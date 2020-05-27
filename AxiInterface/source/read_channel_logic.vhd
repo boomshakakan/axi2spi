@@ -3,7 +3,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.STD_LOGIC_UNSIGNED.ALL;
 
 entity read_channel_logic is
-  generic (
+  Generic (
     C_BASEADDR : STD_LOGIC_VECTOR;
     C_HIGHADDR : STD_LOGIC_VECTOR;
     C_S_AXI_ADDR_WIDTH : INTEGER := 32;
@@ -33,7 +33,8 @@ entity read_channel_logic is
     IPIER_Read : IN STD_LOGIC_VECTOR((C_S_AXI_DATA_WIDTH-1) DOWNTO 0);  -- IP Interrupt Enable Register Read
     
     temp_read_address_out : OUT STD_LOGIC_VECTOR((C_S_AXI_ADDR_WIDTH-1) DOWNTO 0);
-    SPIDRR_Read_en : OUT STD_LOGIC
+    SPIDRR_Read_en : OUT STD_LOGIC;
+    SPISR_Read_en  : OUT STD_LOGIC
   );
 end read_channel_logic;
 
@@ -108,73 +109,87 @@ begin
       S_AXI_RDATA   <= (OTHERS => '0');
       S_AXI_RRESP   <= "00";
       SPIDRR_Read_en <= '0';
+      SPISR_Read_en <= '0';
       
     elsif (rvalid = '1' AND (S_AXI_RREADY = '1')) then
       if (temp_read_address = SRR_ADDR) then
         S_AXI_RDATA <= (OTHERS => '0');
         S_AXI_RRESP <= "01";
         SPIDRR_Read_en <= '0';
+        SPISR_Read_en <= '0';
 
       elsif (temp_read_address = SPICR_ADDR) then
         S_AXI_RDATA <= SPICR_Read;
         S_AXI_RRESP <= "00";
         SPIDRR_Read_en <= '0';
+        SPISR_Read_en <= '0';
 
       elsif (temp_read_address = SPISR_ADDR) then
         S_AXI_RDATA <= SPISR_Read;
         S_AXI_RRESP <= "00";
         SPIDRR_Read_en <= '0';
+        SPISR_Read_en <= '1';
         
       elsif (temp_read_address = SPIDTR_ADDR) then
         S_AXI_RDATA <= (OTHERS => '0');
         S_AXI_RRESP <= "01";
         SPIDRR_Read_en <= '0';
+        SPISR_Read_en <= '0';
 
       elsif (temp_read_address = SPIDRR_ADDR) then
         S_AXI_RDATA <= SPIDRR_Read;
         S_AXI_RRESP <= "00";
         SPIDRR_Read_en <= '1';
+        SPISR_Read_en <= '0';
 
       elsif (temp_read_address = SPISSR_ADDR) then
         S_AXI_RDATA <= SPISSR_Read;
         S_AXI_RRESP <= "00";
         SPIDRR_Read_en <= '0';
+        SPISR_Read_en <= '0';
 
       elsif (temp_read_address = Tx_FIFO_OCY_ADDR) then
         S_AXI_RDATA <= Tx_FIFO_OCY_Read;
         S_AXI_RRESP <= "00";
         SPIDRR_Read_en <= '0';
+        SPISR_Read_en <= '0';
 
       elsif (temp_read_address = Rx_FIFO_OCY_ADDR) then
         S_AXI_RDATA <= Rx_FIFO_OCY_Read;
         S_AXI_RRESP <= "00";
         SPIDRR_Read_en <= '0';
+        SPISR_Read_en <= '0';
 
       elsif (temp_read_address = DGIER_ADDR) then
         S_AXI_RDATA <= DGIER_Read;
         S_AXI_RRESP <= "00";
         SPIDRR_Read_en <= '0';
+        SPISR_Read_en <= '0';
 
       elsif (temp_read_address = IPISR_ADDR) then
         S_AXI_RDATA <= IPISR_Read;
         S_AXI_RRESP <= "00";
         SPIDRR_Read_en <= '0';
+        SPISR_Read_en <= '0';
 
       elsif (temp_read_address = IPIER_ADDR) then
         S_AXI_RDATA <= IPIER_Read;
         S_AXI_RRESP <= "00";
         SPIDRR_Read_en <= '0';
+        SPISR_Read_en <= '0';
 
       else
         S_AXI_RDATA <= (OTHERS => '0');
         S_AXI_RRESP <= "11";
         SPIDRR_Read_en <= '0';
+        SPISR_Read_en <= '0';
 
       end if;
     else
       S_AXI_RDATA <= (OTHERS => '0');
       S_AXI_RRESP <= "00";
       SPIDRR_Read_en <= '0';
+      SPISR_Read_en <= '0';
 
     end if;
   

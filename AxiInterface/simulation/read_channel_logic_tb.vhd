@@ -38,7 +38,8 @@ architecture Behavioral of read_channel_logic_tb is
       IPIER_Read : IN STD_LOGIC_VECTOR((C_S_AXI_DATA_WIDTH-1) DOWNTO 0);  -- IP Interrupt Enable Register Read
       
       temp_read_address_out : OUT STD_LOGIC_VECTOR((C_S_AXI_ADDR_WIDTH-1) DOWNTO 0);
-      SPIDRR_Read_en : OUT STD_LOGIC
+      SPIDRR_Read_en : OUT STD_LOGIC;
+      SPISR_Read_en : OUT STD_LOGIC
     );
   end component;
   
@@ -62,6 +63,7 @@ architecture Behavioral of read_channel_logic_tb is
   SIGNAL IPIER_Read : STD_LOGIC_VECTOR(31 DOWNTO 0) := x"0000_0009";
   SIGNAL temp_read_address_out : STD_LOGIC_VECTOR(31 DOWNTO 0);
   SIGNAL SPIDRR_Read_en : STD_LOGIC;
+  SIGNAL SPISR_Read_en : STD_LOGIC;
   
   SIGNAL address_read_handshake_complete : BOOLEAN;
   SIGNAL read_response_handshake_complete : BOOLEAN;
@@ -93,7 +95,8 @@ begin
       IPISR_Read => IPISR_Read,
       IPIER_Read => IPIER_Read,
       temp_read_address_out => temp_read_address_out,
-      SPIDRR_Read_en => SPIDRR_Read_en
+      SPIDRR_Read_en => SPIDRR_Read_en,
+      SPISR_Read_en => SPISR_Read_en
     );
     
   -- Clock generator and power-on-reset
@@ -172,7 +175,7 @@ begin
     
     wait for 1ns;
     
-    if ((S_AXI_RDATA /= x"0000_0000") OR (S_AXI_RRESP /= "11") OR (SPIDRR_Read_en /= '0')) then
+    if ((S_AXI_RDATA /= x"0000_0000") OR (S_AXI_RRESP /= "11") OR (SPIDRR_Read_en /= '0') OR (SPISR_Read_en /= '0')) then
       assert (FALSE) report "TEST CASE 1 FAILED"
       severity warning;
     end if;
@@ -198,7 +201,7 @@ begin
     
     wait for 1ns;
     
-    if ((S_AXI_RDATA /= x"0000_0000") OR (S_AXI_RRESP /= "01") OR (SPIDRR_Read_en /= '0')) then
+    if ((S_AXI_RDATA /= x"0000_0000") OR (S_AXI_RRESP /= "01") OR (SPIDRR_Read_en /= '0') OR (SPISR_Read_en /= '0')) then
       assert (FALSE) report "TEST CASE 2 FAILED"
       severity warning;
     end if;
@@ -221,7 +224,7 @@ begin
     
     wait for 1ns;
     
-    if ((S_AXI_RDATA /= SPICR_Read) OR (S_AXI_RRESP /= "00") OR (SPIDRR_Read_en /= '0')) then
+    if ((S_AXI_RDATA /= SPICR_Read) OR (S_AXI_RRESP /= "00") OR (SPIDRR_Read_en /= '0') OR (SPISR_Read_en /= '0')) then
       assert (FALSE) report "TEST CASE 3 FAILED"
       severity warning;
     end if;
@@ -243,7 +246,7 @@ begin
     
     wait for 1ns;
     
-    if ((S_AXI_RDATA /= SPISR_Read) OR (S_AXI_RRESP /= "00") OR (SPIDRR_Read_en /= '0')) then
+    if ((S_AXI_RDATA /= SPISR_Read) OR (S_AXI_RRESP /= "00") OR (SPIDRR_Read_en /= '0') OR (SPISR_Read_en /= '1')) then
       assert (FALSE) report "TEST CASE 4 FAILED"
       severity warning;
     end if;
@@ -265,7 +268,7 @@ begin
     
     wait for 1ns;
     
-    if ((S_AXI_RDATA /= x"0000_0000") OR (S_AXI_RRESP /= "01") OR (SPIDRR_Read_en /= '0')) then
+    if ((S_AXI_RDATA /= x"0000_0000") OR (S_AXI_RRESP /= "01") OR (SPIDRR_Read_en /= '0') OR (SPISR_Read_en /= '0')) then
       assert (FALSE) report "TEST CASE 5 FAILED"
       severity warning;
     end if;
@@ -287,7 +290,7 @@ begin
     
     wait for 1ns;
     
-    if ((S_AXI_RDATA /= SPIDRR_Read) OR (S_AXI_RRESP /= "00") OR (SPIDRR_Read_en /= '1')) then
+    if ((S_AXI_RDATA /= SPIDRR_Read) OR (S_AXI_RRESP /= "00") OR (SPIDRR_Read_en /= '1') OR (SPISR_Read_en /= '0')) then
       assert (FALSE) report "TEST CASE 6 FAILED"
       severity warning;
     end if;
@@ -309,7 +312,7 @@ begin
     
     wait for 1ns;
     
-    if ((S_AXI_RDATA /= SPISSR_Read) OR (S_AXI_RRESP /= "00") OR (SPIDRR_Read_en /= '0')) then
+    if ((S_AXI_RDATA /= SPISSR_Read) OR (S_AXI_RRESP /= "00") OR (SPIDRR_Read_en /= '0') OR (SPISR_Read_en /= '0')) then
       assert (FALSE) report "TEST CASE 7 FAILED"
       severity warning;
     end if;
@@ -331,7 +334,7 @@ begin
     
     wait for 1ns;
     
-    if ((S_AXI_RDATA /= Tx_FIFO_OCY_Read) OR (S_AXI_RRESP /= "00") OR (SPIDRR_Read_en /= '0')) then
+    if ((S_AXI_RDATA /= Tx_FIFO_OCY_Read) OR (S_AXI_RRESP /= "00") OR (SPIDRR_Read_en /= '0') OR (SPISR_Read_en /= '0')) then
       assert (FALSE) report "TEST CASE 8 FAILED"
       severity warning;
     end if;
@@ -353,7 +356,7 @@ begin
     
     wait for 1ns;
     
-    if ((S_AXI_RDATA /= Rx_FIFO_OCY_Read) OR (S_AXI_RRESP /= "00") OR (SPIDRR_Read_en /= '0')) then
+    if ((S_AXI_RDATA /= Rx_FIFO_OCY_Read) OR (S_AXI_RRESP /= "00") OR (SPIDRR_Read_en /= '0') OR (SPISR_Read_en /= '0')) then
       assert (FALSE) report "TEST CASE 9 FAILED"
       severity warning;
     end if;
@@ -375,7 +378,7 @@ begin
     
     wait for 1ns;
     
-    if ((S_AXI_RDATA /= DGIER_Read) OR (S_AXI_RRESP /= "00") OR (SPIDRR_Read_en /= '0')) then
+    if ((S_AXI_RDATA /= DGIER_Read) OR (S_AXI_RRESP /= "00") OR (SPIDRR_Read_en /= '0') OR (SPISR_Read_en /= '0')) then
       assert (FALSE) report "TEST CASE 10 FAILED"
       severity warning;
     end if;
@@ -397,7 +400,7 @@ begin
     
     wait for 1ns;
     
-    if ((S_AXI_RDATA /= IPISR_Read) OR (S_AXI_RRESP /= "00") OR (SPIDRR_Read_en /= '0')) then
+    if ((S_AXI_RDATA /= IPISR_Read) OR (S_AXI_RRESP /= "00") OR (SPIDRR_Read_en /= '0') OR (SPISR_Read_en /= '0')) then
       assert (FALSE) report "TEST CASE 11 FAILED"
       severity warning;
     end if;
@@ -419,7 +422,7 @@ begin
     
     wait for 1ns;
     
-    if ((S_AXI_RDATA /= IPIER_Read) OR (S_AXI_RRESP /= "00") OR (SPIDRR_Read_en /= '0')) then
+    if ((S_AXI_RDATA /= IPIER_Read) OR (S_AXI_RRESP /= "00") OR (SPIDRR_Read_en /= '0') OR (SPISR_Read_en /= '0')) then
       assert (FALSE) report "TEST CASE 12 FAILED"
       severity warning;
     end if;

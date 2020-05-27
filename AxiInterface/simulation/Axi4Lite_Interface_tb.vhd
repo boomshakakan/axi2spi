@@ -61,7 +61,8 @@ architecture Behavioral of Axi4Lite_Interface_tb is
       DGIER_Read : IN STD_LOGIC_VECTOR((C_S_AXI_DATA_WIDTH-1) DOWNTO 0);  -- Device Global Intterupt Enable Register Read
       IPISR_Read : IN STD_LOGIC_VECTOR((C_S_AXI_DATA_WIDTH-1) DOWNTO 0);  -- IP Interrupt Status Register Read
       IPIER_Read : IN STD_LOGIC_VECTOR((C_S_AXI_DATA_WIDTH-1) DOWNTO 0);  -- IP Interrupt Enable Register Read
-      SPIDRR_Read_en : OUT STD_LOGIC
+      SPIDRR_Read_en : OUT STD_LOGIC;
+      SPISR_Read_en : OUT STD_LOGIC
     );
   end component;
   
@@ -111,6 +112,7 @@ architecture Behavioral of Axi4Lite_Interface_tb is
   SIGNAL IPISR_Read : STD_LOGIC_VECTOR(31 DOWNTO 0) := x"0000_0008";
   SIGNAL IPIER_Read : STD_LOGIC_VECTOR(31 DOWNTO 0) := x"0000_0009";
   SIGNAL SPIDRR_Read_en : STD_LOGIC;
+  SIGNAL SPISR_Read_en : STD_LOGIC;
 
   SIGNAL address_write_handshake_complete : BOOLEAN;
   SIGNAL data_write_handshake_complete : BOOLEAN;
@@ -163,7 +165,8 @@ begin
       DGIER_Read => DGIER_Read,
       IPISR_Read => IPISR_Read,
       IPIER_Read => IPIER_Read,
-      SPIDRR_Read_en => SPIDRR_Read_en
+      SPIDRR_Read_en => SPIDRR_Read_en,
+      SPISR_Read_en => SPISR_Read_en
     );
     
   -- Clock generator and power-on-reset
@@ -446,7 +449,7 @@ begin
     
     wait for 1ns;
     
-    if ((S_AXI_RDATA /= x"0000_0000") OR (S_AXI_RRESP /= "11") OR (SPIDRR_Read_en /= '0')) then
+    if ((S_AXI_RDATA /= x"0000_0000") OR (S_AXI_RRESP /= "11") OR (SPIDRR_Read_en /= '0') OR (SPISR_Read_en /= '0')) then
       assert (FALSE) report "TEST CASE 4 FAILED"
       severity warning;
     end if;
@@ -472,7 +475,7 @@ begin
     
     wait for 1ns;
     
-    if ((S_AXI_RDATA /= x"0000_0000") OR (S_AXI_RRESP /= "01") OR (SPIDRR_Read_en /= '0')) then
+    if ((S_AXI_RDATA /= x"0000_0000") OR (S_AXI_RRESP /= "01") OR (SPIDRR_Read_en /= '0') OR (SPISR_Read_en /= '0')) then
       assert (FALSE) report "TEST CASE 5 FAILED"
       severity warning;
     end if;
@@ -495,7 +498,7 @@ begin
     
     wait for 1ns;
     
-    if ((S_AXI_RDATA /= SPICR_Read) OR (S_AXI_RRESP /= "00") OR (SPIDRR_Read_en /= '0')) then
+    if ((S_AXI_RDATA /= SPICR_Read) OR (S_AXI_RRESP /= "00") OR (SPIDRR_Read_en /= '0') OR (SPISR_Read_en /= '0')) then
       assert (FALSE) report "TEST CASE 6 FAILED"
       severity warning;
     end if;
@@ -524,7 +527,7 @@ begin
     
     end if;
     
-    if ((S_AXI_RDATA /= x"0000_0000") OR (S_AXI_RRESP /= "11") OR (SPIDRR_Read_en /= '0')) then
+    if ((S_AXI_RDATA /= x"0000_0000") OR (S_AXI_RRESP /= "11") OR (SPIDRR_Read_en /= '0') OR (SPISR_Read_en /= '0')) then
       assert (FALSE) report "TEST CASE 7 READ FAILED"
       severity warning;
     end if;
@@ -555,7 +558,7 @@ begin
     
     end if;
     
-    if ((S_AXI_RDATA /= SPICR_Read) OR (S_AXI_RRESP /= "00") OR (SPIDRR_Read_en /= '0')) then
+    if ((S_AXI_RDATA /= SPICR_Read) OR (S_AXI_RRESP /= "00") OR (SPIDRR_Read_en /= '0') OR (SPISR_Read_en /= '0')) then
       assert (FALSE) report "TEST CASE 8 READ FAILED"
       severity warning;
     end if;
@@ -585,7 +588,7 @@ begin
     
     end if;
     
-    if ((S_AXI_RDATA /= SPIDRR_Read) OR (S_AXI_RRESP /= "00") OR (SPIDRR_Read_en /= '1')) then
+    if ((S_AXI_RDATA /= SPIDRR_Read) OR (S_AXI_RRESP /= "00") OR (SPIDRR_Read_en /= '1') OR (SPISR_Read_en /= '0')) then
       assert (FALSE) report "TEST CASE 9 READ FAILED"
       severity warning;
     end if;
