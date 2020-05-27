@@ -1,11 +1,11 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
- 
-use work.test_pkg.load_register;
-use work.test_pkg.AsyncFifo_32x1_or_16;
-use work.test_pkg.load_flipflop;
-use work.test_pkg.interrupt_register;
+
+use work.axi_spi_components_pkg.load_register;
+use work.axi_spi_components_pkg.AsyncFifo_32x1_or_16;
+use work.axi_spi_components_pkg.load_flipflop;
+use work.axi_spi_components_pkg.interrupt_register;
  
 entity registers is
   Generic (
@@ -83,34 +83,34 @@ architecture Behavioral of registers is
   CONSTANT software_reset_value : STD_LOGIC_VECTOR(31 DOWNTO 0) := x"0000_000A";
 
   -- SRR SIGNALS
-  SIGNAL SRR_Read_temp : STD_LOGIC_VECTOR(31 DOWNTO 0);
-  SIGNAL SRR_en_temp     : STD_LOGIC;
-  SIGNAL srst_n          : STD_LOGIC;
+  SIGNAL SRR_Read_temp    : STD_LOGIC_VECTOR(31 DOWNTO 0);
+  SIGNAL SRR_en_temp      : STD_LOGIC;
+  SIGNAL srst_n           : STD_LOGIC;
   
   -- SPICR SIGNALS
-  SIGNAL SPICR_Read_temp : STD_LOGIC_VECTOR(31 DOWNTO 0);
+  SIGNAL SPICR_Read_temp      : STD_LOGIC_VECTOR(31 DOWNTO 0);
   SIGNAL rx_fifo_rst_sync_rst : STD_LOGIC;
-  SIGNAL Rx_FIFO_rst   : STD_LOGIC;
+  SIGNAL Rx_FIFO_rst          : STD_LOGIC;
   SIGNAL tx_fifo_rst_sync_rst : STD_LOGIC;
-  SIGNAL Tx_FIFO_rst   : STD_LOGIC;
+  SIGNAL Tx_FIFO_rst          : STD_LOGIC;
   
   -- SPISR SIGNALS
-  SIGNAL SPISR_data_in : STD_LOGIC_VECTOR(31 DOWNTO 0);
-  SIGNAL SPISR_Read_temp : STD_LOGIC_VECTOR(31 DOWNTO 0);
-  SIGNAL modf_sync_rst : STD_LOGIC;
-  SIGNAL modf_Read_temp : STD_LOGIC;
+  SIGNAL SPISR_data_in    : STD_LOGIC_VECTOR(31 DOWNTO 0);
+  SIGNAL SPISR_Read_temp  : STD_LOGIC_VECTOR(31 DOWNTO 0);
+  SIGNAL modf_sync_rst    : STD_LOGIC;
+  SIGNAL modf_Read_temp   : STD_LOGIC;
   
   -- SPIDTR SIGNALS
-  SIGNAL SPIDTR_rstn : STD_LOGIC;
-  SIGNAL tx_full : STD_LOGIC;
-  SIGNAL tx_empty_temp : STD_LOGIC;
-  SIGNAL tx_queue_temp : STD_LOGIC_VECTOR((1+(3*C_FIFO_EXIST)) DOWNTO 0);
+  SIGNAL SPIDTR_rstn    : STD_LOGIC;
+  SIGNAL tx_full        : STD_LOGIC;
+  SIGNAL tx_empty_temp  : STD_LOGIC;
+  SIGNAL tx_queue_temp  : STD_LOGIC_VECTOR((1+(3*C_FIFO_EXIST)) DOWNTO 0);
   
   -- SPIDRR SIGNALS
-  SIGNAL SPIDRR_rstn : STD_LOGIC;
-  SIGNAL rx_full_temp : STD_LOGIC;
-  SIGNAL rx_empty_temp : STD_LOGIC;
-  SIGNAL rx_queue : STD_LOGIC_VECTOR((1+(3*C_FIFO_EXIST)) DOWNTO 0);
+  SIGNAL SPIDRR_rstn    : STD_LOGIC;
+  SIGNAL rx_full_temp   : STD_LOGIC;
+  SIGNAL rx_empty_temp  : STD_LOGIC;
+  SIGNAL rx_queue       : STD_LOGIC_VECTOR((1+(3*C_FIFO_EXIST)) DOWNTO 0);
   
   -- TX FIFO OCY REGISTER SIGNALS
   SIGNAL Tx_FIFO_OCY_data_in : STD_LOGIC_VECTOR(31 DOWNTO 0);
@@ -129,11 +129,11 @@ architecture Behavioral of registers is
   SIGNAL IPISR_Write_irpt     : STD_LOGIC_VECTOR(31 DOWNTO 0);
   
   -- IPIER SIGNALS
-  SIGNAL IPIER_Read_temp : STD_LOGIC_VECTOR(31 DOWNTO 0);
+  SIGNAL IPIER_Read_temp  : STD_LOGIC_VECTOR(31 DOWNTO 0);
   
   -- INTERRUPT SIGNALS
-  SIGNAL irpt_vector : STD_LOGIC_VECTOR(8 DOWNTO 0);
-  SIGNAL IP2INTC_Irpt_temp : STD_LOGIC;
+  SIGNAL irpt_vector        : STD_LOGIC_VECTOR(8 DOWNTO 0);
+  SIGNAL IP2INTC_Irpt_temp  : STD_LOGIC;
 
 begin
   ----- SRR IMPLEMENTATION BEGIN -----

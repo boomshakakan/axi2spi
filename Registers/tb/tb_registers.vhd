@@ -1,6 +1,6 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
-use work.components_pkg.all;
+use work.axi_spi_components_pkg.all;
 
 entity tb_registers is
 end tb_registers;
@@ -41,7 +41,7 @@ begin
     
     DUT :   registers
         port map (
-            clk             => clk_i,
+            S_AXI_ACLK      => clk_i,
             rst_n           => rst_i,
             wr_data         => data_i,
             stb_in          => stb_i,

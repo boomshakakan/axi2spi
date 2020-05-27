@@ -1,6 +1,6 @@
 Vivado Simulator 2019.2
 Copyright 1986-1999, 2001-2019 Xilinx, Inc. All Rights Reserved.
-Running: D:/Projects/Vivado/2019.2/bin/unwrapped/win64.o/xelab.exe -wto a602a3663d054ddc99427c50fc8bbe6e --incr --debug typical --relax --mt 2 -L xil_defaultlib -L secureip --snapshot tb_registers_behav xil_defaultlib.tb_registers -log elaborate.log 
+Running: D:/Projects/Vivado/2019.2/bin/unwrapped/win64.o/xelab.exe -wto a602a3663d054ddc99427c50fc8bbe6e --incr --debug typical --relax --mt 2 -L xil_defaultlib -L secureip --snapshot axi_spi_core_registers_tb_behav xil_defaultlib.axi_spi_core_registers_tb -log elaborate.log 
 Using 2 slave threads.
 Starting static elaboration
 Completed static elaboration
@@ -10,10 +10,19 @@ Time Resolution for simulation is 1ps
 Compiling package std.standard
 Compiling package std.textio
 Compiling package ieee.std_logic_1164
-Compiling package xil_defaultlib.components_pkg
+Compiling package xil_defaultlib.axi_spi_components_pkg
 Compiling package ieee.numeric_std
+Compiling package ieee.std_logic_arith
+Compiling package ieee.std_logic_unsigned
 Compiling architecture behavioral of entity xil_defaultlib.load_register [load_register_default]
-Compiling architecture behavioral of entity xil_defaultlib.toggle_on_write [toggle_on_write_default]
-Compiling architecture behavioral of entity xil_defaultlib.registers [\registers(fifo_not_exist='1')\]
-Compiling architecture behavioral of entity xil_defaultlib.tb_registers
-Built simulation snapshot tb_registers_behav
+Compiling architecture behavioral of entity xil_defaultlib.load_flipflop [load_flipflop_default]
+Compiling architecture behavioral of entity xil_defaultlib.AsyncFifo_32x1_or_16 [asyncfifo_32x1_or_16_default]
+Compiling architecture behavioral of entity xil_defaultlib.interrupt_register [interrupt_register_default]
+Compiling architecture behavioral of entity xil_defaultlib.registers [registers_default]
+Compiling architecture behavioral of entity xil_defaultlib.synchronizer_Nbit [\synchronizer_Nbit(width=12)\]
+Compiling architecture behavioral of entity xil_defaultlib.synchronizer_Nbit [\synchronizer_Nbit(width=7)\]
+Compiling architecture structural of entity xil_defaultlib.cdc [\cdc(c_num_ss_bits=2)\]
+Compiling architecture behavioral of entity xil_defaultlib.irpt_pulse_generator [irpt_pulse_generator_default]
+Compiling architecture structural of entity xil_defaultlib.axi_spi_core_registers [\axi_spi_core_registers(c_num_ss...]
+Compiling architecture behavioral of entity xil_defaultlib.axi_spi_core_registers_tb
+Built simulation snapshot axi_spi_core_registers_tb_behav

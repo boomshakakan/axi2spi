@@ -1,10 +1,12 @@
 # compile vhdl design source files
 vhdl xil_defaultlib  \
-"../../../../axi2spi.srcs/sources_1/new/components_pkg.vhd" \
-"../../../../axi2spi.srcs/sources_1/new/load_register.vhd" \
-"../../../../axi2spi.srcs/sources_1/new/registers.vhd" \
-"../../../../axi2spi.srcs/sources_1/new/toggle_on_write.vhd" \
-"../../../../axi2spi.srcs/sources_1/new/tb_registers.vhd" \
+"../../../../../Registers/src/AsyncFifo_32x1_or_16.vhd" \
+"../../../../axi2spi.srcs/sources_1/new/axi_spi_components_pkg.vhd" \
+"../../../../../Registers/src/interrupt_register.vhd" \
+"../../../../../Registers/src/load_flipflop.vhd" \
+"../../../../../Registers/src/load_register.vhd" \
+"../../../../../Registers/src/registers.vhd" \
+"../../../../../Registers/tb/tb_registers.vhd" \
 
 # Do not sort compile order
 nosort

@@ -7,12 +7,12 @@ end tb_registers;
 
 architecture Behavioral of tb_registers is
 
-    constant fifo_no_exist  :   std_logic := '1';
     signal clk_i    :   std_logic := '0';
     signal rst_i    :   std_logic;
-    signal stb_i    :   std_logic_vector(3 downto 0);
+    signal en_i     :   std_logic;
+    signal stb_i    :   std_logic_vector(1 downto 0);
     signal data_i   :   std_logic_vector(31 downto 0);
-    -- signal data_o   :   std_logic_vector(31 downto 0);
+    signal data_o   :   std_logic_vector(31 downto 0);
     
     signal SRR_RST  :   std_logic;
     
@@ -25,27 +25,21 @@ architecture Behavioral of tb_registers is
 begin
 
     clk_i   <= not clk_i after 10ns;
-    rst_i   <= '0', '1' after 50ns;
+    rst_i   <= '0', '1' after 1us;
     
-    data_i  <= x"0000000A";
-    stb_i   <= "1111";
+    data_i  <= x"ffffffff";
+    stb_i   <= "11";
     
-    process
+    process 
     begin
+        wait for 10ns;
         en_0    <= '1';
+        en_3    <= '1';
+        en_5    <= '1';
         wait for 100ns;
-        en_0    <= '0';
-        en_6    <= '1';
-        wait for 50ns;
-        en_6    <= '0';
-        en_7    <= '1';
-        wait for 50ns;
-        en_7    <= '0';
-
-    end process DUT;
+    end process;
     
     DUT :   registers
-        generic map (FIFO_NOT_EXIST => fifo_no_exist)
         port map (
             clk             => clk_i,
             rst_n           => rst_i,

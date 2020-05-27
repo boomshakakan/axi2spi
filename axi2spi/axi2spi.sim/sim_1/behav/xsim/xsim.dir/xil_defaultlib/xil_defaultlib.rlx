@@ -2,8 +2,14 @@
 2019.2
 Nov  6 2019
 21:57:16
-D:/Projects/training/axi2spi/axi2spi/axi2spi.srcs/sources_1/new/components_pkg.vhd,1589925129,vhdl,D:/Projects/training/axi2spi/axi2spi/axi2spi.srcs/sources_1/new/tb_registers.vhd,,,components_pkg,,,,,,,,
-D:/Projects/training/axi2spi/axi2spi/axi2spi.srcs/sources_1/new/load_register.vhd,1589939499,vhdl,,,,load_register,,,,,,,,
-D:/Projects/training/axi2spi/axi2spi/axi2spi.srcs/sources_1/new/registers.vhd,1589937592,vhdl,,,,registers,,,,,,,,
-D:/Projects/training/axi2spi/axi2spi/axi2spi.srcs/sources_1/new/tb_registers.vhd,1589939626,vhdl,,,,tb_registers,,,,,,,,
-D:/Projects/training/axi2spi/axi2spi/axi2spi.srcs/sources_1/new/toggle_on_write.vhd,1589608854,vhdl,,,,toggle_on_write,,,,,,,,
+D:/Projects/training/axi2spi/Registers/src/AsyncFifo_32x1_or_16.vhd,1590605899,vhdl,,,,asyncfifo_32x1_or_16,,,,,,,,
+D:/Projects/training/axi2spi/Registers/src/axi_spi_core_registers.vhd,1590612543,vhdl,,,,axi_spi_core_registers,,,,,,,,
+D:/Projects/training/axi2spi/Registers/src/cdc.vhd,1590605899,vhdl,,,,cdc,,,,,,,,
+D:/Projects/training/axi2spi/Registers/src/interrupt_register.vhd,1590605899,vhdl,,,,interrupt_register,,,,,,,,
+D:/Projects/training/axi2spi/Registers/src/irpt_pulse_generator.vhd,1590605899,vhdl,,,,irpt_pulse_generator,,,,,,,,
+D:/Projects/training/axi2spi/Registers/src/load_flipflop.vhd,1590605899,vhdl,,,,load_flipflop,,,,,,,,
+D:/Projects/training/axi2spi/Registers/src/load_register.vhd,1590605899,vhdl,,,,load_register,,,,,,,,
+D:/Projects/training/axi2spi/Registers/src/registers.vhd,1590611958,vhdl,,,,registers,,,,,,,,
+D:/Projects/training/axi2spi/Registers/src/synchronizer_Nbit.vhd,1590605899,vhdl,,,,synchronizer_nbit,,,,,,,,
+D:/Projects/training/axi2spi/Registers/tb/axi_spi_core_registers_tb.vhd,1590605899,vhdl,,,,axi_spi_core_registers_tb,,,,,,,,
+D:/Projects/training/axi2spi/axi2spi/axi2spi.srcs/sources_1/new/axi_spi_components_pkg.vhd,1590614453,vhdl,D:/Projects/training/axi2spi/Registers/src/axi_spi_core_registers.vhd;D:/Projects/training/axi2spi/Registers/src/cdc.vhd;D:/Projects/training/axi2spi/Registers/src/registers.vhd;D:/Projects/training/axi2spi/Registers/tb/axi_spi_core_registers_tb.vhd,,,axi_spi_components_pkg,,,,,,,,
