@@ -27,6 +27,8 @@ begin
     process (clk, load_en_n)
     begin
     
+    -- not sure why we couldnt just keep synthesizable for loop implementation
+    
         if load_en_n = '0' then
             d_out   <= load;
         elsif rising_edge(clk) then
