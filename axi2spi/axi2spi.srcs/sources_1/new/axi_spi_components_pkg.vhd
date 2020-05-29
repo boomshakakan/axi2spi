@@ -152,24 +152,24 @@ package axi_spi_components_pkg is
   ---------------------------------------------------------------------------------
   component axi_spi_core_registers is
     Generic (
-      C_FIFO_EXIST : INTEGER := 1;
+      C_FIFO_EXIST  : INTEGER := 1;
       C_NUM_SS_BITS : INTEGER := 1
     );
     Port (
-      S_AXI_ACLK : IN STD_LOGIC;
-      spi_clk    : IN STD_LOGIC;
+      S_AXI_ACLK    : IN STD_LOGIC;
+      spi_clk       : IN STD_LOGIC;
       S_AXI_ARESETN : IN STD_LOGIC;
       rst_n         : OUT STD_LOGIC;
       strobe        : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
     
-      SRR_en : IN STD_LOGIC;
-      SPICR_en : IN STD_LOGIC;
+      SRR_en    : IN STD_LOGIC;
+      SPICR_en  : IN STD_LOGIC;
       SPIDTR_en : IN STD_LOGIC;
       SPIDRR_en : IN STD_LOGIC;
       SPISSR_en : IN STD_LOGIC;
-      DGIER_en        :   IN STD_LOGIC;
-      IPISR_en        :   IN STD_LOGIC;
-      IPIER_en        :   IN STD_LOGIC;
+      DGIER_en  : IN STD_LOGIC;
+      IPISR_en  : IN STD_LOGIC;
+      IPIER_en  : IN STD_LOGIC;
           
       -- REGISTER WRITE DATA INPUT
       axi_write_bus     : IN STD_LOGIC_VECTOR(31 DOWNTO 0);   -- data to be written to registers
@@ -203,8 +203,8 @@ package axi_spi_components_pkg is
       -- REG TO SPI
       SPICR_bits_synched  : OUT STD_LOGIC_VECTOR(9 DOWNTO 0);
       SPISSR_bits_synched : OUT STD_LOGIC_VECTOR((C_NUM_SS_BITS-1) DOWNTO 0);
-      rx_full : OUT STD_LOGIC;
-      tx_empty : OUT STD_LOGIC
+      rx_full   : OUT STD_LOGIC;
+      tx_empty  : OUT STD_LOGIC
     );
   end component;
   
