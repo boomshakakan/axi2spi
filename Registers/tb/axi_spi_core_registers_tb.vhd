@@ -62,65 +62,65 @@ begin
 
   DUT : axi_spi_core_registers
     Generic Map (
-      C_FIFO_EXIST => 1,
+      C_FIFO_EXIST  => 1,
       C_NUM_SS_BITS => 2
     )
     Port Map (
-      S_AXI_ACLK => S_AXI_ACLK,
-      spi_clk    => spi_clk,
+      S_AXI_ACLK    => S_AXI_ACLK,
+      spi_clk       => spi_clk,
       S_AXI_ARESETN => S_AXI_ARESETN,
       rst_n         => rst_n,
       strobe        => strobe,
     
-      SRR_en => SRR_en,
-      SPICR_en => SPICR_en,
-      SPIDTR_en => SPIDTR_en,
-      SPIDRR_en => SPIDRR_en,
-      SPISSR_en => SPISSR_en,
-      DGIER_en => DGIER_en,
-      IPISR_en   => IPISR_en,
-      IPIER_en  => IPIER_en,
-      axi_write_bus => axi_write_bus,
+      SRR_en                => SRR_en,
+      SPICR_en              => SPICR_en,
+      SPIDTR_en             => SPIDTR_en,
+      SPIDRR_en             => SPIDRR_en,
+      SPISSR_en             => SPISSR_en,
+      DGIER_en              => DGIER_en,
+      IPISR_en              => IPISR_en,
+      IPIER_en              => IPIER_en,
+      axi_write_bus         => axi_write_bus,
       slave_mode_select_spi => slave_mode_select_spi,
-      modf_spi => modf_spi,
-      slave_modf_spi  => slave_modf_spi,
-      SPIDRR_Write    => SPIDRR_Write,
-      SPISR_Read_en  => SPISR_Read_en,
-      SPIDRR_Read_en => SPIDRR_Read_en,
-      SPIDTR_Read_en => SPIDTR_Read_en,
-      SPICR_Read     => SPICR_Read,
-      SPISR_Read      => SPISR_Read,
-      SPIDTR_Read     => SPIDTR_Read,
-      SPIDRR_Read      => SPIDRR_Read,
-      SPISSR_Read      => SPISSR_Read,
-      Tx_FIFO_OCY_Read => Tx_FIFO_OCY_Read,
-      Rx_FIFO_OCY_Read => Rx_FIFO_OCY_Read,
-      DGIER_Read       => DGIER_Read,
-      IPISR_Read      => IPISR_Read,
-      IPIER_Read      => IPIER_Read,
-      IP2INTC_Irpt    => IP2INTC_Irpt,
-      SPICR_bits_synched => SPICR_bits_synched,
-      SPISSR_bits_synched => SPISSR_bits_synched,
-      rx_full => rx_full,
-      tx_empty => tx_empty
+      modf_spi              => modf_spi,
+      slave_modf_spi        => slave_modf_spi,
+      SPIDRR_Write          => SPIDRR_Write,
+      SPISR_Read_en         => SPISR_Read_en,
+      SPIDRR_Read_en        => SPIDRR_Read_en,
+      SPIDTR_Read_en        => SPIDTR_Read_en,
+      SPICR_Read            => SPICR_Read,
+      SPISR_Read            => SPISR_Read,
+      SPIDTR_Read           => SPIDTR_Read,
+      SPIDRR_Read           => SPIDRR_Read,
+      SPISSR_Read           => SPISSR_Read,
+      Tx_FIFO_OCY_Read      => Tx_FIFO_OCY_Read,
+      Rx_FIFO_OCY_Read      => Rx_FIFO_OCY_Read,
+      DGIER_Read            => DGIER_Read,
+      IPISR_Read            => IPISR_Read,
+      IPIER_Read            => IPIER_Read,
+      IP2INTC_Irpt          => IP2INTC_Irpt,
+      SPICR_bits_synched    => SPICR_bits_synched,
+      SPISSR_bits_synched   => SPISSR_bits_synched,
+      rx_full               => rx_full,
+      tx_empty              => tx_empty
     );
   
   -- Clock generator and power-on-reset
-  S_AXI_ACLK <= NOT S_AXI_ACLK after 10ns;
-  spi_clk    <= NOT spi_clk after 20ns;
+  S_AXI_ACLK    <= NOT S_AXI_ACLK after 10ns;
+  spi_clk       <= NOT spi_clk after 20ns;
   S_AXI_ARESETN <= '0', '1' after 1us;
   
   tb : process
   begin
-    strobe <= "1111";
-    SRR_en <= '0';
-    SPICR_en <= '0';
-    SPIDTR_en <= '0';
-    SPIDRR_en <= '0';
-    SPISSR_en <= '0';
-    DGIER_en  <= '0';
-    IPISR_en  <= '0';
-    IPIER_en  <= '0';
+    strobe      <= "1111";
+    SRR_en      <= '0';
+    SPICR_en    <= '0';
+    SPIDTR_en   <= '0';
+    SPIDRR_en   <= '0';
+    SPISSR_en   <= '0';
+    DGIER_en    <= '0';
+    IPISR_en    <= '0';
+    IPIER_en    <= '0';
     axi_write_bus     <= x"FFFF_FFFF";
     slave_mode_select_spi <= '0';
     modf_spi              <= '0';
@@ -133,33 +133,6 @@ begin
     wait until S_AXI_ARESETN <= '0';
     wait until S_AXI_ARESETN <= '1';
     wait until S_AXI_ACLK <= '0';
-  
-    SRR_en <= '1';
-    SPICR_en <= '1';
-    SPIDTR_en <= '0';
-    SPIDRR_en <= '0';
-    SPISSR_en <= '1';
-    DGIER_en  <= '0';
-    IPISR_en  <= '0';
-    IPIER_en  <= '0';
-    
-    wait until S_AXI_ACLK <= '1';
-    wait until S_AXI_ACLK <= '0';
-    
-    axi_write_bus <= x"8000_0100";
-    SRR_en <= '0';
-    SPICR_en <= '0';
-    SPIDTR_en <= '0';
-    SPIDRR_en <= '0';
-    SPISSR_en <= '0';
-    DGIER_en  <= '1';
-    IPISR_en  <= '0';
-    IPIER_en  <= '1';
-    
-    wait until S_AXI_ACLK <= '1';
-    wait until S_AXI_ACLK <= '0';
-    wait until S_AXI_ACLK <= '1';
-    wait until S_AXI_ACLK <= '0';
     
     SPIDTR_en <= '1';
     SPIDRR_en <= '1';
@@ -168,6 +141,94 @@ begin
     
     SPIDTR_en <= '0';
     SPIDRR_en <= '0';
+    
+    -- Rx & Tx FIFO Reset Tests
+    
+    -- Rx Reset x"0000_0040" *PASSED*
+    -- Tx Reset x"0000_0020" *PASSED*
+    -- both     x"0000_0060" *PASSED*
+        
+    axi_write_bus   <= x"0000_0060"; -- Rx FIFO Reset and Tx FIFO Reset
+    SPICR_en    <= '1';
+    
+    wait until S_AXI_ACLK   <= '1';
+    wait until S_AXI_ACLK   <= '0';
+    
+    SPICR_en    <= '0';
+    
+    assert rx_full = '0'
+        report "Rx FIFO Reset failed"
+        severity failure;
+        
+    assert tx_empty = '1'
+        report "Tx FIFO Reset failed"
+        severity failure;
+    
+    -- END RX & TX FIFO RESET TESTS
+    
+    -- INTERRUPT ENABLE AND STATUS TESTS
+    axi_write_bus   <= x"8000_0000";
+    DGIER_en        <= '1';
+    
+    wait until S_AXI_ACLK   <= '1';
+    wait until S_AXI_ACLK   <= '0';
+    
+    axi_write_bus   <= x"0000_000F";
+    IPIER_en        <= '1';
+    
+    wait until S_AXI_ACLK   <= '1';
+    wait until S_AXI_ACLK   <= '0';
+    
+    IPIER_en        <= '0';
+    
+    axi_write_bus   <= x"0000_00F0";
+    IPISR_en        <= '1';
+    
+    wait until S_AXI_ACLK   <= '1';
+    wait until S_AXI_ACLK   <= '0';
+    
+    IPISR_en        <= '0';
+    
+    -- END INTERRUPTS TESTS 
+    -- *UNFINISHED*
+    
+    -- SRR RESET TESTS
+    -- ASSERT RESET OF ALL REGISTERS TO DEFAULT VALUES
+    -- *WE ALSO NEED TO TEST THE RESETTING OF S_AXI_ARESETN WHICH IS NOT CURRENTLY CONNECTED*
+    
+    axi_write_bus   <= x"0000_000A";
+    SRR_en  <= '1';
+    
+    wait until S_AXI_ACLK   <= '1';
+    wait until S_AXI_ACLK   <= '0';
+    
+    SRR_en  <= '0';
+    
+    assert SPICR_Read = x"0000_0180"
+        report "SPICR Register not reset"
+        severity failure;
+        
+    assert SPISR_Read = x"0000_0025"
+        report "SPISR Register not reset"
+        severity failure;
+    
+    assert Tx_FIFO_OCY_Read = x"0000_0000"
+        report "TX_FIFO_OCY Register not reset"
+        severity failure;
+        
+    assert Rx_FIFO_OCY_Read = x"0000_0000"
+        report "Rx_FIFO_OCY Register not reset"
+        severity failure;
+        
+    assert DGIER_Read = x"0000_0000"
+        report "DGIER Register not reset"
+        severity failure;
+        
+    -- END SRR RESET TESTS
+    
+    
+    
+    
   
     report "TEST COMPLETED";
     wait;

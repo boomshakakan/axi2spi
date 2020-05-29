@@ -54,10 +54,10 @@ entity registers is
     IPIER_Read       : OUT STD_LOGIC_VECTOR(31 DOWNTO 0);
     
     -- FIFO FLAG OUTPUTS
-    rx_full : OUT STD_LOGIC;
-    rx_empty : OUT STD_LOGIC;
-    tx_empty : OUT STD_LOGIC;
-    tx_queue : OUT STD_LOGIC_VECTOR((1+(3*C_FIFO_EXIST)) DOWNTO 0);
+    rx_full     : OUT STD_LOGIC;
+    rx_empty    : OUT STD_LOGIC;
+    tx_empty    : OUT STD_LOGIC;
+    tx_queue    : OUT STD_LOGIC_VECTOR((1+(3*C_FIFO_EXIST)) DOWNTO 0);
         
     -- SOFTWARE RESET OUTPUT AND INPUT
     srst_n_O : OUT STD_LOGIC;
@@ -149,9 +149,9 @@ begin
     );
 
   --  Outputs reset signal for 1 clk when 0x0000_000A is written to SRR
-  srst_n <= '0' WHEN (SRR_Read_temp = software_reset_value) ELSE '1';
-  srst_n_o <= srst_n;
-  SRR_en_temp <= SRR_en OR (NOT srst_n);
+  srst_n        <= '0' WHEN (SRR_Read_temp = software_reset_value) ELSE '1';
+  srst_n_o      <= srst_n;
+  SRR_en_temp   <= SRR_en OR (NOT srst_n);
   ----- SRR IMPLEMENTATION END -----
 
   ----- SPICR IMPLEMENTATION BEGIN -----
@@ -241,9 +241,9 @@ begin
       r_data => SPIDTR_Read,
       queue => tx_queue_temp
     );
-  tx_empty <= tx_empty_temp;
-  tx_queue <= tx_queue_temp;
-  SPIDTR_rstn <= rst_n AND (NOT Tx_FIFO_rst);
+  tx_empty      <= tx_empty_temp;
+  tx_queue      <= tx_queue_temp;
+  SPIDTR_rstn   <= rst_n AND (NOT Tx_FIFO_rst);
   ----- SPIDTR IMPLEMENTATION END -----
 
   ----- SPIDRR IMPLEMENTATION BEGIN -----
@@ -263,9 +263,9 @@ begin
       r_data => SPIDRR_Read,
       queue => rx_queue
     );
-  rx_full <= rx_full_temp;
-  rx_empty <= rx_empty_temp;
-  SPIDRR_rstn <= rst_n AND (NOT Rx_FIFO_rst);
+  rx_full       <= rx_full_temp;
+  rx_empty      <= rx_empty_temp;
+  SPIDRR_rstn   <= rst_n AND (NOT Rx_FIFO_rst);
   ----- SPIDRR IMPLEMENTATION END -----
 
   SPISSR : load_register
@@ -349,9 +349,9 @@ begin
     dtr_empty_irpt &
     slave_modf_irpt &
     modf_irpt;
-  irpt_wr_data_toggled <= IPISR_Write_irpt XOR IPISR_Read_temp; -- Toggle irpt write data input into register
-  irpt_enable <= '0' when (IPISR_Write_irpt = x"0000_0000") else '1'; -- Enable write of interrupt
-  IPISR_Read <= IPISR_Read_temp;
+  irpt_wr_data_toggled  <= IPISR_Write_irpt XOR IPISR_Read_temp; -- Toggle irpt write data input into register
+  irpt_enable           <= '0' when (IPISR_Write_irpt = x"0000_0000") else '1'; -- Enable write of interrupt
+  IPISR_Read            <= IPISR_Read_temp;
   ----- IPISR IMPLEMENTATION END -----
 
   ----- IPIER IMPLEMENTATION BEGIN -----
@@ -369,8 +369,8 @@ begin
   ----- IPIER IMPLEMENTATION END -----
   
   ----- INTERRUPT LOGIC -----
-  irpt_vector <= IPISR_Read_temp(8 DOWNTO 0) AND IPIER_Read_temp(8 DOWNTO 0);
+  irpt_vector       <= IPISR_Read_temp(8 DOWNTO 0) AND IPIER_Read_temp(8 DOWNTO 0);
   IP2INTC_Irpt_temp <= '0' when (irpt_vector = "000000000") else '1';
-  IP2INTC_Irpt <= IP2INTC_Irpt_temp AND DGIER_Read_temp(31);
+  IP2INTC_Irpt      <= IP2INTC_Irpt_temp AND DGIER_Read_temp(31);
 
 end Behavioral;
