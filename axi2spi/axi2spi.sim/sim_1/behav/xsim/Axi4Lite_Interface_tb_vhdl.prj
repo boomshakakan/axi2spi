@@ -1,0 +1,10 @@
+# compile vhdl design source files
+vhdl xil_defaultlib  \
+"../../../../axi2spi.srcs/sources_1/new/axi_spi_components_pkg.vhd" \
+"../../../../axi2spi.srcs/sources_1/new/AxiInterface/source/Axi4Lite_Interface.vhd" \
+"../../../../axi2spi.srcs/sources_1/new/AxiInterface/source/read_channel_logic.vhd" \
+"../../../../axi2spi.srcs/sources_1/new/AxiInterface/source/write_channel_logic.vhd" \
+"../../../../axi2spi.srcs/sources_1/new/AxiInterface/simulation/Axi4Lite_Interface_tb.vhd" \
+
+# Do not sort compile order
+nosort
