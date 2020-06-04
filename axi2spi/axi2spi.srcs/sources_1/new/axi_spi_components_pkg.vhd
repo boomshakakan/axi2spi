@@ -41,29 +41,29 @@ package axi_spi_components_pkg is
       S_AXI_RREADY : IN STD_LOGIC;                                          -- Read Ready
     
       -- Internal Ports
-      WriteToReg    : OUT STD_LOGIC_VECTOR((C_S_AXI_DATA_WIDTH-1) DOWNTO 0); -- Input Data
-      Strobe        : OUT STD_LOGIC_VECTOR(3 DOWNTO 0); -- Strobe sent out to registers
+      WriteToReg : OUT STD_LOGIC_VECTOR((C_S_AXI_DATA_WIDTH-1) DOWNTO 0); -- Input Data
+      Strobe : OUT STD_LOGIC_VECTOR(3 DOWNTO 0); -- Strobe sent out to registers
      
-      SRR_En    : OUT STD_LOGIC;    -- Software Reset Register Enable
-      SPICR_En  : OUT STD_LOGIC;  -- SPI Control Register Enable
+      SRR_En : OUT STD_LOGIC;    -- Software Reset Register Enable
+      SPICR_En : OUT STD_LOGIC;  -- SPI Control Register Enable
       SPIDTR_En : OUT STD_LOGIC; -- SPI Data Transmit Register Enable
       SPISSR_En : OUT STD_LOGIC; -- SPI Slave Select Register Enable
-      DGIER_En  : OUT STD_LOGIC;  -- Device Global Interrupt Enable Register Enable
-      IPISR_En  : OUT STD_LOGIC;  -- IP Interrupt Status Register Enable
-      IPIER_En  : OUT STD_LOGIC;  -- IP Interrupt Enable Register Enable
+      DGIER_En : OUT STD_LOGIC;  -- Device Global Interrupt Enable Register Enable
+      IPISR_En : OUT STD_LOGIC;  -- IP Interrupt Status Register Enable
+      IPIER_En : OUT STD_LOGIC;  -- IP Interrupt Enable Register Enable
     
-      SPICR_Read        : IN STD_LOGIC_VECTOR((C_S_AXI_DATA_WIDTH-1) DOWNTO 0);  -- SPI Control Register Read
-      SPISR_Read        : IN STD_LOGIC_VECTOR((C_S_AXI_DATA_WIDTH-1) DOWNTO 0);  -- SPI Status Register Read
-      SPIDRR_Read       : IN STD_LOGIC_VECTOR((C_S_AXI_DATA_WIDTH-1) DOWNTO 0); -- SPI Data Receive Register Read
-      SPISSR_Read       : IN STD_LOGIC_VECTOR((C_S_AXI_DATA_WIDTH-1) DOWNTO 0); -- SPI Slave Select Register Read
-      Tx_FIFO_OCY_Read  : IN STD_LOGIC_VECTOR((C_S_AXI_DATA_WIDTH-1) DOWNTO 0); -- SPI Transmit FIFO Occupancy Register Read
-      Rx_FIFO_OCY_Read  : IN STD_LOGIC_VECTOR((C_S_AXI_DATA_WIDTH-1) DOWNTO 0); -- SPI Receive FIFO Occupancy Register Read
-      DGIER_Read        : IN STD_LOGIC_VECTOR((C_S_AXI_DATA_WIDTH-1) DOWNTO 0);  -- Device Global Intterupt Enable Register Read
-      IPISR_Read        : IN STD_LOGIC_VECTOR((C_S_AXI_DATA_WIDTH-1) DOWNTO 0);  -- IP Interrupt Status Register Read
-      IPIER_Read        : IN STD_LOGIC_VECTOR((C_S_AXI_DATA_WIDTH-1) DOWNTO 0);  -- IP Interrupt Enable Register Read
+      SPICR_Read : IN STD_LOGIC_VECTOR((C_S_AXI_DATA_WIDTH-1) DOWNTO 0);  -- SPI Control Register Read
+      SPISR_Read : IN STD_LOGIC_VECTOR((C_S_AXI_DATA_WIDTH-1) DOWNTO 0);  -- SPI Status Register Read
+      SPIDRR_Read : IN STD_LOGIC_VECTOR((C_S_AXI_DATA_WIDTH-1) DOWNTO 0); -- SPI Data Receive Register Read
+      SPISSR_Read : IN STD_LOGIC_VECTOR((C_S_AXI_DATA_WIDTH-1) DOWNTO 0); -- SPI Slave Select Register Read
+      Tx_FIFO_OCY_Read : IN STD_LOGIC_VECTOR((C_S_AXI_DATA_WIDTH-1) DOWNTO 0); -- SPI Transmit FIFO Occupancy Register Read
+      Rx_FIFO_OCY_Read : IN STD_LOGIC_VECTOR((C_S_AXI_DATA_WIDTH-1) DOWNTO 0); -- SPI Receive FIFO Occupancy Register Read
+      DGIER_Read : IN STD_LOGIC_VECTOR((C_S_AXI_DATA_WIDTH-1) DOWNTO 0);  -- Device Global Intterupt Enable Register Read
+      IPISR_Read : IN STD_LOGIC_VECTOR((C_S_AXI_DATA_WIDTH-1) DOWNTO 0);  -- IP Interrupt Status Register Read
+      IPIER_Read : IN STD_LOGIC_VECTOR((C_S_AXI_DATA_WIDTH-1) DOWNTO 0);  -- IP Interrupt Enable Register Read
     
-      SPIDRR_Read_en    : OUT STD_LOGIC;                                      -- Enable read for DRR
-      SPISR_Read_en     : OUT STD_LOGIC
+      SPIDRR_Read_en : OUT STD_LOGIC;                                      -- Enable read for DRR
+      SPISR_Read_en : OUT STD_LOGIC
     );
   end component;
   
@@ -87,19 +87,19 @@ package axi_spi_components_pkg is
       S_AXI_RVALID : OUT STD_LOGIC;                                         -- Read Valid
       S_AXI_RREADY : IN STD_LOGIC;                                          -- Read Ready
     
-      SPICR_Read        : IN STD_LOGIC_VECTOR((C_S_AXI_DATA_WIDTH-1) DOWNTO 0);  -- SPI Control Register Read
-      SPISR_Read        : IN STD_LOGIC_VECTOR((C_S_AXI_DATA_WIDTH-1) DOWNTO 0);  -- SPI Status Register Read
-      SPIDRR_Read       : IN STD_LOGIC_VECTOR((C_S_AXI_DATA_WIDTH-1) DOWNTO 0); -- SPI Data Receive Register Read
-      SPISSR_Read       : IN STD_LOGIC_VECTOR((C_S_AXI_DATA_WIDTH-1) DOWNTO 0); -- SPI Slave Select Register Read
-      Tx_FIFO_OCY_Read  : IN STD_LOGIC_VECTOR((C_S_AXI_DATA_WIDTH-1) DOWNTO 0); -- SPI Transmit FIFO Occupancy Register Read
-      Rx_FIFO_OCY_Read  : IN STD_LOGIC_VECTOR((C_S_AXI_DATA_WIDTH-1) DOWNTO 0); -- SPI Receive FIFO Occupancy Register Read
-      DGIER_Read        : IN STD_LOGIC_VECTOR((C_S_AXI_DATA_WIDTH-1) DOWNTO 0);  -- Device Global Intterupt Enable Register Read
-      IPISR_Read        : IN STD_LOGIC_VECTOR((C_S_AXI_DATA_WIDTH-1) DOWNTO 0);  -- IP Interrupt Status Register Read
-      IPIER_Read        : IN STD_LOGIC_VECTOR((C_S_AXI_DATA_WIDTH-1) DOWNTO 0);  -- IP Interrupt Enable Register Read
+      SPICR_Read : IN STD_LOGIC_VECTOR((C_S_AXI_DATA_WIDTH-1) DOWNTO 0);  -- SPI Control Register Read
+      SPISR_Read : IN STD_LOGIC_VECTOR((C_S_AXI_DATA_WIDTH-1) DOWNTO 0);  -- SPI Status Register Read
+      SPIDRR_Read : IN STD_LOGIC_VECTOR((C_S_AXI_DATA_WIDTH-1) DOWNTO 0); -- SPI Data Receive Register Read
+      SPISSR_Read : IN STD_LOGIC_VECTOR((C_S_AXI_DATA_WIDTH-1) DOWNTO 0); -- SPI Slave Select Register Read
+      Tx_FIFO_OCY_Read : IN STD_LOGIC_VECTOR((C_S_AXI_DATA_WIDTH-1) DOWNTO 0); -- SPI Transmit FIFO Occupancy Register Read
+      Rx_FIFO_OCY_Read : IN STD_LOGIC_VECTOR((C_S_AXI_DATA_WIDTH-1) DOWNTO 0); -- SPI Receive FIFO Occupancy Register Read
+      DGIER_Read : IN STD_LOGIC_VECTOR((C_S_AXI_DATA_WIDTH-1) DOWNTO 0);  -- Device Global Intterupt Enable Register Read
+      IPISR_Read : IN STD_LOGIC_VECTOR((C_S_AXI_DATA_WIDTH-1) DOWNTO 0);  -- IP Interrupt Status Register Read
+      IPIER_Read : IN STD_LOGIC_VECTOR((C_S_AXI_DATA_WIDTH-1) DOWNTO 0);  -- IP Interrupt Enable Register Read
     
       temp_read_address_out : OUT STD_LOGIC_VECTOR((C_S_AXI_ADDR_WIDTH-1) DOWNTO 0);
-      SPIDRR_Read_en        : OUT STD_LOGIC;
-      SPISR_Read_en         : OUT STD_LOGIC
+      SPIDRR_Read_en : OUT STD_LOGIC;
+      SPISR_Read_en : OUT STD_LOGIC
     );
   end component;
   
@@ -152,24 +152,24 @@ package axi_spi_components_pkg is
   ---------------------------------------------------------------------------------
   component axi_spi_core_registers is
     Generic (
-      C_FIFO_EXIST  : INTEGER := 1;
+      C_FIFO_EXIST : INTEGER := 1;
       C_NUM_SS_BITS : INTEGER := 1
     );
     Port (
-      S_AXI_ACLK    : IN STD_LOGIC;
-      spi_clk       : IN STD_LOGIC;
+      S_AXI_ACLK : IN STD_LOGIC;
+      spi_clk    : IN STD_LOGIC;
       S_AXI_ARESETN : IN STD_LOGIC;
       rst_n         : OUT STD_LOGIC;
       strobe        : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
     
-      SRR_en    : IN STD_LOGIC;
-      SPICR_en  : IN STD_LOGIC;
+      SRR_en : IN STD_LOGIC;
+      SPICR_en : IN STD_LOGIC;
       SPIDTR_en : IN STD_LOGIC;
       SPIDRR_en : IN STD_LOGIC;
       SPISSR_en : IN STD_LOGIC;
-      DGIER_en  : IN STD_LOGIC;
-      IPISR_en  : IN STD_LOGIC;
-      IPIER_en  : IN STD_LOGIC;
+      DGIER_en        :   IN STD_LOGIC;
+      IPISR_en        :   IN STD_LOGIC;
+      IPIER_en        :   IN STD_LOGIC;
           
       -- REGISTER WRITE DATA INPUT
       axi_write_bus     : IN STD_LOGIC_VECTOR(31 DOWNTO 0);   -- data to be written to registers
@@ -177,6 +177,7 @@ package axi_spi_components_pkg is
       slave_mode_select_spi : IN STD_LOGIC; -- SPISR input from SPI
       modf_spi              : IN STD_LOGIC; -- SPISR input from SPI
       slave_modf_spi        : IN STD_LOGIC;
+      end_of_transaction    : IN STD_LOGIC;
     
       SPIDRR_Write      : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
         
@@ -203,8 +204,8 @@ package axi_spi_components_pkg is
       -- REG TO SPI
       SPICR_bits_synched  : OUT STD_LOGIC_VECTOR(9 DOWNTO 0);
       SPISSR_bits_synched : OUT STD_LOGIC_VECTOR((C_NUM_SS_BITS-1) DOWNTO 0);
-      rx_full   : OUT STD_LOGIC;
-      tx_empty  : OUT STD_LOGIC
+      rx_full : OUT STD_LOGIC;
+      tx_empty : OUT STD_LOGIC
     );
   end component;
   
@@ -405,6 +406,190 @@ package axi_spi_components_pkg is
   end component;
   ---------------------------------------------------------------------------------
   -- REGISTER IMPLEMENTATION END
+  ---------------------------------------------------------------------------------
+  
+  ---------------------------------------------------------------------------------
+  -- SPI IMPLEMENTATION BEGIN
+  ---------------------------------------------------------------------------------
+  component spi_module
+    Generic (
+      C_NUM_TRANSFER_BITS : INTEGER := 8;
+      C_NUM_SS_BITS : INTEGER := 1;
+      C_SCK_RATIO : INTEGER := 2
+    );
+    Port (
+      -- Internal Ports
+      S_AXI_ACLK : IN STD_LOGIC;
+      rst_n : IN STD_LOGIC;
+      
+      spi_clk : OUT STD_LOGIC;
+    
+      SPISSR_Read : IN STD_LOGIC_VECTOR((C_NUM_SS_BITS-1) DOWNTO 0);
+
+      tx_read : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+      tx_read_enable : OUT STD_LOGIC;
+      rx_write : OUT STD_LOGIC_VECTOR(31 DOWNTO 0);
+      rx_enable : OUT STD_LOGIC;
+      tx_empty : IN STD_LOGIC;
+      end_of_transaction : OUT STD_LOGIC;
+
+      lsb_first                            : IN STD_LOGIC;
+      master_transaction_inhibit           : IN STD_LOGIC;
+      manual_slave_select_assertion_enable : IN STD_LOGIC;
+      cpha                                 : IN STD_LOGIC;
+      cpol                                 : IN STD_LOGIC;
+      master_mode                          : IN STD_LOGIC;
+      spe                                  : IN STD_LOGIC;
+      loopback                             : IN STD_LOGIC;
+
+      slave_mode_select : OUT STD_LOGIC;
+      modf              : OUT STD_LOGIC;
+      slave_modf        : OUT STD_LOGIC;
+    
+      -- External Ports
+      MISO_O : OUT STD_LOGIC;
+      MOSI_O : OUT STD_LOGIC;
+      SCK_O : OUT STD_LOGIC;
+      SS_O   : OUT STD_LOGIC_VECTOR((C_NUM_SS_BITS-1) DOWNTO 0);
+      MISO_T : OUT STD_LOGIC;
+      MOSI_T : OUT STD_LOGIC;
+      SCK_T : OUT STD_LOGIC;
+      SS_T   : OUT STD_LOGIC;
+      MISO_I : IN STD_LOGIC;
+      MOSI_I : IN STD_LOGIC;
+      SCK_I : IN STD_LOGIC;
+      SS_I   : IN STD_LOGIC_VECTOR((C_NUM_SS_BITS-1) DOWNTO 0);
+      SPISEL : IN STD_LOGIC
+    );
+  end component;
+ 
+  component spi_cu
+    Port (
+      -- External Signals
+      rst_n              : IN STD_LOGIC;
+      tx_empty           : IN STD_LOGIC;
+      SPIDTR_read_enable : OUT STD_LOGIC;
+      SPIDRR_enable      : OUT STD_LOGIC;
+      ss_automatic       : OUT STD_LOGIC;
+    
+      -- Control Register Signals
+      master_mode                          : IN STD_LOGIC;
+      master_transaction_inhibit           : IN STD_LOGIC;
+      manual_slave_select_assertion_enable : IN STD_LOGIC;
+      spe                                  : IN STD_LOGIC;
+    
+      -- Shift Register Signals
+      load_enable  : OUT STD_LOGIC;
+      shift_enable : OUT STD_LOGIC;
+    
+      -- Clock Logic Signals
+      clk                    : IN STD_LOGIC;
+      enable_master_transfer : OUT STD_LOGIC;
+      master_transfer_done   : IN STD_LOGIC;
+    
+      -- Pin Interface Signals
+      SPISEL : IN STD_LOGIC;
+    
+      -- Status Signals
+      modf              : OUT STD_LOGIC;
+      slave_modf        : OUT STD_LOGIC;
+      slave_select_mode : OUT STD_LOGIC
+    );
+  end component;
+  
+  component BRG
+    Generic (
+      C_SCK_RATIO : INTEGER := 2
+    );
+    Port (
+      clk_in : in STD_LOGIC;
+      rst_n  : IN STD_LOGIC;
+      clk_out : OUT STD_LOGIC
+    );
+  end component;
+  
+  component shift_register_p2p
+    Generic (
+      C_NUM_TRANSFER_BITS: INTEGER := 8
+    );
+    Port (
+      clk : IN STD_LOGIC;
+      rst_n : IN STD_LOGIC;
+      load_enable : IN STD_LOGIC;
+      load : IN STD_LOGIC_VECTOR((C_NUM_TRANSFER_BITS-1) DOWNTO 0);
+      r_in : IN STD_LOGIC;
+      l_in : IN STD_LOGIC;
+      shift_rnl : IN STD_LOGIC;
+      shift_enable : IN STD_LOGIC;
+      d_out : OUT STD_LOGIC_VECTOR((C_NUM_TRANSFER_BITS-1) DOWNTO 0)
+    );
+  end component;
+  
+  component clock_logic
+    Generic (
+      C_NUM_TRANSFER_BITS: INTEGER := 8
+    );
+    Port (
+      system_clk : IN STD_LOGIC;
+      rst_n : IN STD_LOGIC;
+      enable_master_transfer : IN STD_LOGIC;
+      master_transfer_done : OUT STD_LOGIC;
+    
+      master_mode : IN STD_LOGIC;
+      cpol : IN STD_LOGIC;
+      cpha : IN STD_LOGIC;
+    
+      control_unit_clk : OUT STD_LOGIC;
+      master_clk_o : OUT STD_LOGIC;
+      slave_clk_i : IN STD_LOGIC;
+      shift_register_clk : OUT STD_LOGIC
+    );
+  end component;
+  
+  component pin_interface
+    Generic (
+      C_NUM_SS_BITS : INTEGER := 8
+    );
+    Port (
+      -- External Ports
+      SCK_O : OUT STD_LOGIC;
+      SCK_T : OUT STD_LOGIC;
+      SCK_I : IN STD_LOGIC;
+    
+      MOSI_O : OUT STD_LOGIC;
+      MOSI_T : OUT STD_LOGIC;
+      MOSI_I : IN STD_LOGIC;
+    
+      MISO_O : OUT STD_LOGIC;
+      MISO_T : OUT STD_LOGIC;
+      MISO_I : IN STD_LOGIC;
+    
+      SS_O : OUT STD_LOGIC_VECTOR((C_NUM_SS_BITS-1) DOWNTO 0);
+      SS_T : OUT STD_LOGIC;
+      SS_I : IN STD_LOGIC_VECTOR((C_NUM_SS_BITS-1) DOWNTO 0);
+    
+      SPISEL : IN STD_LOGIC;
+    
+      -- Internal Ports
+      slave_clk  : OUT STD_LOGIC;
+      master_clk : IN STD_LOGIC;
+    
+      slave_o  : IN STD_LOGIC;
+      master_o : IN STD_LOGIC;
+    
+      slave_i  : OUT STD_LOGIC;
+      master_i : OUT STD_LOGIC;
+    
+      master_mode : IN STD_LOGIC;
+      spe : IN STD_LOGIC;
+      loopback : IN STD_LOGIC;
+      SPISSR_Read : IN STD_LOGIC_VECTOR((C_NUM_SS_BITS-1) DOWNTO 0);
+    
+      slave_select : OUT STD_LOGIC
+    );
+  end component;
+  ---------------------------------------------------------------------------------
+  -- SPI IMPLEMENTATION END
   ---------------------------------------------------------------------------------
  
 end axi_spi_components_pkg;
