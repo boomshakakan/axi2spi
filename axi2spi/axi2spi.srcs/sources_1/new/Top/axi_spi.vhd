@@ -3,18 +3,18 @@ use IEEE.STD_LOGIC_1164.ALL;
 
 use work.axi_spi_components_pkg.Axi4Lite_Interface;
 use work.axi_spi_components_pkg.axi_spi_core_registers;
-
-LIBRARY work; 
-USE work.spi_pkg.ALL; 
+use work.axi_spi_components_pkg.spi_module;
 
 entity axi_spi is
   Generic (
-    C_BASEADDR : STD_LOGIC_VECTOR:=x"0000_0000"; 
-    C_HIGHADDR : STD_LOGIC_VECTOR:=x"0000_0007";
+    C_BASEADDR : STD_LOGIC_VECTOR; 
+    C_HIGHADDR : STD_LOGIC_VECTOR;
     C_S_AXI_ADDR_WIDTH : INTEGER := 32;
     C_S_AXI_DATA_WIDTH : INTEGER := 32;
     C_FIFO_EXIST : INTEGER := 1;
-    C_NUM_SS_BITS : INTEGER := 8
+    C_NUM_SS_BITS : INTEGER := 1;
+    C_NUM_TRANSFER_BITS : INTEGER := 8;
+    C_SCK_RATIO : INTEGER := 2
   );
   Port (
     -- AXI4-Lite Interface Ports
@@ -43,11 +43,13 @@ entity axi_spi is
     S_AXI_RVALID : OUT STD_LOGIC;                                         -- Read Valid
     S_AXI_RREADY : IN STD_LOGIC;                                          -- Read Ready
     
+    -- Interrupt Port
     IP2INTC_Irpt : OUT STD_LOGIC;
     
-  --------------------------- SPI PORTS-----------------------------------
+    -- SPI Ports
     SCK_I        : IN  STD_LOGIC;        ----- SCK INPUT FROM OUTSIDE SPI MASTER
     SCK_O        : OUT STD_LOGIC;         ----- SCK OUTPUT TO OUTSIDE SPI SLAVE
+    SCK_T        : OUt STD_LOGIC;
     MISO_I       : IN  STD_LOGIC;        ----- MISO_I in master mode
     MOSI_O       : OUT STD_LOGIC;        ----- MOSI_O out master mode
     MISO_O       : OUT STD_LOGIC;        ----- MISO_O out slave mode
@@ -55,9 +57,10 @@ entity axi_spi is
     MOSI_T       : OUT STD_LOGIC;        ----- MOSI_T enable
     MISO_T       : OUT STD_LOGIC;        ----- MISO_T enable
     SS_T         : OUT STD_LOGIC; 
-    SS_O         : OUT STD_LOGIC_VECTOR(C_NUM_SS_BITS-1 DOWNTO 0); ----- skave select out
+    SS_O         : OUT STD_LOGIC_VECTOR((C_NUM_SS_BITS-1) DOWNTO 0); ----- skave select out
+    SS_I         : IN STD_LOGIC_VECTOR((C_NUM_SS_BITS-1) DOWNTO 0);
     SPISEL       : IN  STD_LOGIC        ----- SLAVE SELECT FROM OUTSIDE SPI MASTER
-   );
+  );
 end axi_spi;
 
 architecture Structural of axi_spi is
@@ -88,19 +91,23 @@ architecture Structural of axi_spi is
   
   SIGNAL rst_n : STD_LOGIC;
   
-  --------------------SPI SIGNALS---------------------
-  SIGNAL spi_clk:STD_LOGIC;  ----- spi clock
-  SIGNAL SPICR_signal  :STD_LOGIC_VECTOR(9 DOWNTO 0);  ----- SPI CONTROL SIGNALS
-  SIGNAL SPISSR_signal :STD_LOGIC_VECTOR(C_NUM_SS_BITS-1 DOWNTO 0); ----- SLAVE SELECT SIGNALS
-  SIGNAL MODF: STD_LOGIC;
-  SIGNAL SLAVE_SEL_MOD:STD_LOGIC;
-  SIGNAL SLAVE_MODF:STD_LOGIC;
-  SIGNAL TX_EN:STD_LOGIC;
-  SIGNAL RX_EN:STD_LOGIC;
-  SIGNAL TX_FIFO_REG:STD_LOGIC_VECTOR(31 DOWNTO 0);
-  SIGNAL RX_FIFO_REG:STD_LOGIC_VECTOR(31 DOWNTO 0);
-  SIGNAL EMPTY:STD_LOGIC;
-  SIGNAL FULL :STD_LOGIC;
+  SIGNAL spi_clk       : STD_LOGIC;  ----- spi clock
+  SIGNAL SPICR_signal  : STD_LOGIC_VECTOR(9 DOWNTO 0);  ----- SPI CONTROL SIGNALS
+  SIGNAL SPISSR_signal : STD_LOGIC_VECTOR(C_NUM_SS_BITS-1 DOWNTO 0); ----- SLAVE SELECT SIGNALS
+  SIGNAL MODF          : STD_LOGIC;
+  SIGNAL SLAVE_SEL_MOD : STD_LOGIC;
+  SIGNAL SLAVE_MODF    : STD_LOGIC;
+  SIGNAL TX_EN         : STD_LOGIC;
+  SIGNAL RX_EN         : STD_LOGIC;
+  SIGNAL TX_FIFO_REG   : STD_LOGIC_VECTOR(31 DOWNTO 0);
+  SIGNAL RX_FIFO_REG   : STD_LOGIC_VECTOR(31 DOWNTO 0);
+  SIGNAL TX_EMPTY         : STD_LOGIC;
+  SIGNAL RX_FULL          : STD_LOGIC;
+  SIGNAL cpha_o        : STD_LOGIC;
+  SIGNAL cpol_o        : STD_LOGIC;
+  
+  SIGNAL end_of_transaction : STD_LOGIC;
+
 begin
 
   axi_interface : Axi4Lite_Interface
@@ -176,7 +183,7 @@ begin
       SRR_en => SRR_En,
       SPICR_en => SPICR_En,
       SPIDTR_en => SPIDTR_En,
-      SPIDRR_en => RX_EN ,
+      SPIDRR_en => RX_EN,
       SPISSR_en => SPISSR_En,
       DGIER_en => DGIER_En,
       IPISR_en => IPISR_En,
@@ -184,11 +191,12 @@ begin
 
       axi_write_bus => WriteToReg,
     
-      slave_mode_select_spi => SLAVE_SEL_MOD ,
+      slave_mode_select_spi => SLAVE_SEL_MOD,
       modf_spi              => MODF,
-      slave_modf_spi        => SLAVE_MODF ,
+      slave_modf_spi        => SLAVE_MODF,
+      end_of_transaction    => end_of_transaction,
     
-      SPIDRR_Write      =>RX_FIFO_REG ,
+      SPIDRR_Write      => RX_FIFO_REG,
 
       SPISR_Read_en  => SPISR_Read_en,
       SPIDRR_Read_en => SPIDRR_Read_en,
@@ -207,51 +215,59 @@ begin
 
       IP2INTC_Irpt => IP2INTC_Irpt,
     
-      SPICR_bits_synched  =>SPICR_signal ,
-      SPISSR_bits_synched =>SPISSR_signal,
-      rx_full =>EMPTY , -----------------JUST FOR NOW
-      tx_empty =>FULL   ----------------- JUST FOR NOW
+      SPICR_bits_synched  => SPICR_signal,
+      SPISSR_bits_synched => SPISSR_signal,
+      rx_full => RX_FULL,
+      tx_empty => TX_EMPTY
+    );
+
+  spi : spi_module
+    Generic Map (
+      C_NUM_TRANSFER_BITS => C_NUM_TRANSFER_BITS,
+      C_NUM_SS_BITS       => C_NUM_SS_BITS,
+      C_SCK_RATIO         => C_SCK_RATIO
+    )
+    Port Map (
+      S_AXI_ACLK => S_AXI_ACLK,
+      rst_n      => rst_n,
+      
+      spi_clk    => spi_clk,
+    
+      SPISSR_Read => SPISSR_signal,
+
+      tx_read        => TX_FIFO_REG,
+      tx_read_enable => TX_EN,
+      rx_write       => RX_FIFO_REG,
+      rx_enable      => RX_EN,
+      tx_empty       => TX_EMPTY,
+      end_of_transaction => end_of_transaction,
+
+      lsb_first                            => SPICR_signal(9),
+      master_transaction_inhibit           => SPICR_signal(8),
+      manual_slave_select_assertion_enable => SPICR_signal(7),
+      cpha                                 => SPICR_signal(4),
+      cpol                                 => SPICR_signal(3),
+      master_mode                          => SPICR_signal(2),
+      spe                                  => SPICR_signal(1),
+      loopback                             => SPICR_signal(0),
+
+      slave_mode_select => SLAVE_SEL_MOD,
+      modf              => MODF,
+      slave_modf        => SLAVE_MODF,
+
+      MISO_O => MISO_O,
+      MOSI_O => MOSI_O,
+      SCK_O => SCK_O,
+      SS_O   => SS_O,
+      MISO_T => MISO_T,
+      MOSI_T => MOSI_T,
+      SCK_T => SCK_T,
+      SS_T   => SS_T,
+      MISO_I => MISO_I,
+      MOSI_I => MOSI_I,
+      SCK_I => SCK_I,
+      SS_I   => SS_I,
+      SPISEL => SPISEL
     );
     
-     spi_interface_is:spi_interface
-     port map(clk        =>S_AXI_ACLK,           ----- System clock
-           
-             sclk_fifo   =>spi_clk,  
-             reset       =>rst_n, 
-             ssel        =>SPISEL,
-      --------control signals-----------
-             loopback    =>SPICR_signal(0),      ------ SPI LOOPBACK
-             enable      =>SPICR_signal(1),      ------ SPI ENABLE
-             master      =>SPICR_signal(2),      ------ SPI MASTER OR SLAVE MODE
-             cpol_i      =>SPICR_signal(3),      ------ SPI CPOL 
-             cpha_i      =>SPICR_signal(4),      ------ SPI CPHA
-             manual_slave=>SPICR_signal(7),      ------ SPI Manual Slave Select Assertion Enable
-             mss         =>SPICR_signal(8),      ------ SPI Master Transaction Inhibit
-             lsb         =>SPICR_signal(9),      ------ SPI LSB FIRST  
-     --------slave select reg signal-------        
-             ss          => SPISSR_signal,
-     -------- axispi interface signals ---------    
-             slave_clk   =>SCK_I,                 ----- slave clock when spi is in slave mode
-             sck_o       =>SCK_O ,                ----- spi clock out to spi slave
-             MISO_I      =>MISO_I,
-             MOSI_O      =>MOSI_O,    
-             MISO_O      =>MISO_O,
-             MOSI_I      =>MOSI_I,
-             MOSI_T      =>MOSI_T,
-             MISO_T      =>MISO_T,
-             SS_T        =>SS_T,                
-             ss_o        =>ss_o,
-      -------status signals ---------------
-             MODF        =>MODF,
-             SLAVE_SEL_MOD=>SLAVE_SEL_MOD,
-             SLAVE_MODF  => SLAVE_MODF,    
-     -------- fifo signals ---------        
-             data_re     =>TX_EN,
-         --  cpha_o  =>cpha_fifo,
-          -- cpol_o  =>cpol_fifo,
-             tx_fifo_reg =>tx_fifo_reg,
-             fifo_en     =>RX_EN,
-             rx_fifo_reg =>rx_fifo_reg);
-      
-
 end Structural;

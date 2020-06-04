@@ -13,7 +13,9 @@ architecture Behavioral of axi_spi_tb is
       C_S_AXI_ADDR_WIDTH : INTEGER := 32;
       C_S_AXI_DATA_WIDTH : INTEGER := 32;
       C_FIFO_EXIST : INTEGER := 1;
-      C_NUM_SS_BITS : INTEGER := 8
+      C_NUM_SS_BITS : INTEGER := 1;
+      C_NUM_TRANSFER_BITS : INTEGER := 8;
+      C_SCK_RATIO : INTEGER := 2
     );
     Port (
       -- AXI4-Lite Interface Ports
@@ -56,6 +58,7 @@ architecture Behavioral of axi_spi_tb is
       MISO_T       : OUT STD_LOGIC;        ----- MISO_T enable
       SS_T         : OUT STD_LOGIC; 
       SS_O         : OUT STD_LOGIC_VECTOR(C_NUM_SS_BITS-1 DOWNTO 0); ----- skave select out
+      SS_I         : IN STD_LOGIC_VECTOR((C_NUM_SS_BITS-1) DOWNTO 0);
       SPISEL       : IN  STD_LOGIC        ----- SLAVE SELECT FROM OUTSIDE SPI MASTER
     );
   end component;  
@@ -99,6 +102,7 @@ architecture Behavioral of axi_spi_tb is
   SIGNAL MISO_T       : STD_LOGIC;        ----- MISO_T enable
   SIGNAL SS_T         : STD_LOGIC; 
   SIGNAL SS_O         : STD_LOGIC_VECTOR(7 DOWNTO 0); ----- skave select out
+  SIGNAL SS_I         : STD_LOGIC_VECTOR(7 DOWNTO 0);
   SIGNAL SPISEL       : STD_LOGIC;        ----- SLAVE SELECT FROM OUTSIDE SPI MASTER
   
   SIGNAL address_write_handshake_complete : BOOLEAN;
@@ -112,7 +116,8 @@ begin
   DUT : axi_spi
     Generic Map (
       C_BASEADDR => x"0000_0000", 
-      C_HIGHADDR => x"0000_007F"
+      C_HIGHADDR => x"0000_007F",
+      C_NUM_SS_BITS => 8
     )
     Port Map (
       S_AXI_ACLK    => S_AXI_ACLK,
@@ -152,6 +157,7 @@ begin
       MISO_T       => MISO_T,
       SS_T         => SS_T,
       SS_O         => SS_O,
+      SS_I         => SS_I,
       SPISEL       => SPISEL
     );
   
@@ -273,8 +279,7 @@ begin
     
   -- Clock generator and power-on-reset
   S_AXI_ACLK <= NOT S_AXI_ACLK after 10ns;
-  S_AXI_ARESETN <= '0', '1' after 1us;
-  Sck_I <= NOT S_AXI_ACLK after 10ns;
+  
   tb : process
   begin
   
@@ -289,10 +294,13 @@ begin
     S_AXI_WVALID <= '0';
     S_AXI_BREADY <= '0';
     
-   -- SCK_I <= '0';
-   -- MISO_I <= '0';
-  --  MOSI_I <= '0';
+    SCK_I <= '0';
+    MISO_I <= '0';
+    MOSI_I <= '0';
+    SS_I   <= "11111111";
     SPISEL <= '1';
+    
+    S_AXI_ARESETN <= '0', '1' after 1us;
     
     wait until S_AXI_ARESETN <= '0';
     wait until S_AXI_ARESETN <= '1';
@@ -300,6 +308,7 @@ begin
     wait until S_AXI_ACLK <= '1';
     wait until S_AXI_ACLK <= '0';
     
+    ----- TEST LOOPBACK FUNCTIONALITY -----
     -- ENABLE GLOBAL INTERRUPT
     S_AXI_AWADDR <= x"0000_001C";
     S_AXI_AWVALID <= '1';
@@ -321,8 +330,26 @@ begin
     -- ENABLE INTERRUPTS
     S_AXI_AWADDR <= x"0000_0028";
     S_AXI_AWVALID <= '1';
-    S_AXI_WDATA <= x"0000_01FF";
+    S_AXI_WDATA <= x"0000_0100";
     S_AXI_WSTB <= "0011";
+    S_AXI_WVALID <= '1';
+    S_AXI_BREADY <= '1';
+    
+    wait until address_write_handshake_complete <= TRUE;
+    S_AXI_AWVALID <= '0';
+    S_AXI_WVALID <= '0';
+    
+    wait until write_response_handshake_complete <= TRUE;
+    S_AXI_BREADY <= '0';
+    
+    wait until S_AXI_ACLK <= '1';
+    wait until S_AXI_ACLK <= '0';
+    
+    -- WRITE TO SS REGISTER
+    S_AXI_AWADDR <= x"0000_0070";
+    S_AXI_AWVALID <= '1';
+    S_AXI_WDATA <= x"FFFF_FFFE";
+    S_AXI_WSTB <= "1111";
     S_AXI_WVALID <= '1';
     S_AXI_BREADY <= '1';
     
@@ -339,7 +366,7 @@ begin
     -- WRITE DATA TO TX FIFO
     S_AXI_AWADDR <= x"0000_0068";
     S_AXI_AWVALID <= '1';
-    S_AXI_WDATA <= x"FAFA_FA7E";
+    S_AXI_WDATA <= x"FAFA_FAFA";
     S_AXI_WSTB <= "1111";
     S_AXI_WVALID <= '1';
     S_AXI_BREADY <= '1';
@@ -354,26 +381,10 @@ begin
     wait until S_AXI_ACLK <= '1';
     wait until S_AXI_ACLK <= '0';
     
+    -- WRITE DATA TO TX FIFO
     S_AXI_AWADDR <= x"0000_0068";
     S_AXI_AWVALID <= '1';
-    S_AXI_WDATA <= x"FAFA_FA7E";
-    S_AXI_WSTB <= "1111";
-    S_AXI_WVALID <= '1';
-    S_AXI_BREADY <= '1';
-    
-    wait until address_write_handshake_complete <= TRUE;
-    S_AXI_AWVALID <= '0';
-    S_AXI_WVALID <= '0';
-    
-    wait until write_response_handshake_complete <= TRUE;
-    S_AXI_BREADY <= '0';
-    
-    wait until S_AXI_ACLK <= '1';
-    wait until S_AXI_ACLK <= '0';
-    
-       S_AXI_AWADDR <= x"0000_0068";
-    S_AXI_AWVALID <= '1';
-    S_AXI_WDATA <= x"FAFA_FA7E";
+    S_AXI_WDATA <= x"BABA_BABA";
     S_AXI_WSTB <= "1111";
     S_AXI_WVALID <= '1';
     S_AXI_BREADY <= '1';
@@ -391,11 +402,49 @@ begin
     -- WRITE TO CONTROL REGISTER
     S_AXI_AWADDR <= x"0000_0060";
     S_AXI_AWVALID <= '1';
-    S_AXI_WDATA <= x"0000_0096";
+    S_AXI_WDATA <= x"0000_021F";
     S_AXI_WSTB <= "0011";
     S_AXI_WVALID <= '1';
     S_AXI_BREADY <= '1';
-   
+    
+    wait until address_write_handshake_complete <= TRUE;
+    S_AXI_AWVALID <= '0';
+    S_AXI_WVALID <= '0';
+    
+    wait until write_response_handshake_complete <= TRUE;
+    S_AXI_BREADY <= '0';
+    
+    wait until IP2INTC_Irpt <= '1';
+    
+    -- READ FA FROM SPIDRR
+    S_AXI_ARADDR <= x"0000_006C";
+    S_AXI_ARVALID <= '1';
+    S_AXI_RREADY <= '1';
+    
+    wait until address_read_handshake_complete <= TRUE;
+    S_AXI_ARVALID <= '0';
+    
+    wait for 1ns;
+    
+    if ((S_AXI_RDATA /= x"0000_00FA") OR (S_AXI_RRESP /= "00")) then
+      assert (FALSE) report "FAILED to read FA"
+      severity warning;
+    end if;
+    
+    wait until read_response_handshake_complete <= TRUE;
+    S_AXI_RREADY <= '0';
+    
+    wait until S_AXI_ACLK <= '1';
+    wait until S_AXI_ACLK <= '0';
+    
+    -- CLEAR INTERRUPT
+    S_AXI_AWADDR <= x"0000_0020";
+    S_AXI_AWVALID <= '1';
+    S_AXI_WDATA <= x"0000_0100";
+    S_AXI_WSTB <= "0011";
+    S_AXI_WVALID <= '1';
+    S_AXI_BREADY <= '1';
+    
     wait until address_write_handshake_complete <= TRUE;
     S_AXI_AWVALID <= '0';
     S_AXI_WVALID <= '0';
@@ -406,63 +455,111 @@ begin
     wait until S_AXI_ACLK <= '1';
     wait until S_AXI_ACLK <= '0';
     
- --   WAIT FOR 180 ns;
- --    SpiSEL<='1';
- 
-    wait until SS_T<='0';
-    MISO_I <='1';
-    WAIT FOR 80 NS;
-     MISO_I <='0';
-     WAIT FOR 40 NS;
-      MISO_I <='0';
-     WAIT FOR 40 NS;
-      MISO_I <='0';
-     WAIT FOR 40 NS;
-     MISO_I <='0';
-     WAIT FOR 40 NS;
-     MISO_I <='0';
-     WAIT FOR 40 NS;
-      MISO_I <='0';
-       WAIT FOR 40 NS;
-       MISO_I <='0';
-       
-       WAIT FOR 40 NS;
-      MISO_I <='1';
-      WAIT FOR 40 NS;
-       MISO_I <='0';
-     WAIT FOR 40 NS;
-      MISO_I <='0';
-     WAIT FOR 40 NS;
-      MISO_I <='0';
-     WAIT FOR 40 NS;
-     MISO_I <='0';
-     WAIT FOR 40 NS;
-     MISO_I <='0';
-     
-     
-    S_AXI_AWADDR <= x"0000_0060";
+    wait until IP2INTC_Irpt <= '1';
+    
+    -- READ BA FROM SPIDRR
+    S_AXI_ARADDR <= x"0000_006C";
+    S_AXI_ARVALID <= '1';
+    S_AXI_RREADY <= '1';
+    
+    wait until address_read_handshake_complete <= TRUE;
+    S_AXI_ARVALID <= '0';
+    
+    wait for 1ns;
+    
+    if ((S_AXI_RDATA /= x"0000_00BA") OR (S_AXI_RRESP /= "00")) then
+      assert (FALSE) report "Failed to read BA"
+      severity warning;
+    end if;
+    
+    wait until read_response_handshake_complete <= TRUE;
+    S_AXI_RREADY <= '0';
+    
+    wait until S_AXI_ACLK <= '1';
+    wait until S_AXI_ACLK <= '0';
+    
+     -- CLEAR INTERRUPT
+    S_AXI_AWADDR <= x"0000_0020";
     S_AXI_AWVALID <= '1';
-    S_AXI_WDATA <= x"0000_0085";
+    S_AXI_WDATA <= x"0000_0100";
     S_AXI_WSTB <= "0011";
     S_AXI_WVALID <= '1';
     S_AXI_BREADY <= '1';
-    SpiSEL<='1';
-  
-     WAIT FOR 40 NS;
-      MISO_I <='0';
-       WAIT FOR 40 NS;
-      MISO_I <='1';
- 
     
+    wait until address_write_handshake_complete <= TRUE;
+    S_AXI_AWVALID <= '0';
+    S_AXI_WVALID <= '0';
     
-    wait for 200 ns;
+    wait until write_response_handshake_complete <= TRUE;
+    S_AXI_BREADY <= '0';
     
+    wait until S_AXI_ACLK <= '1';
+    wait until S_AXI_ACLK <= '0';
     
+    S_AXI_ARESETN <= '0', '1' after 1us;
+    
+    wait until S_AXI_ARESETN <= '0';
+    wait until S_AXI_ARESETN <= '1';
+    
+    -- TEST MASTER AUTO SLAVE ASSERT
+    -- ENABLE GLOBAL INTERRUPT
+    S_AXI_AWADDR <= x"0000_001C";
+    S_AXI_AWVALID <= '1';
+    S_AXI_WDATA <= x"8000_0000";
+    S_AXI_WSTB <= "1000";
+    S_AXI_WVALID <= '1';
+    S_AXI_BREADY <= '1';
+    
+    wait until address_write_handshake_complete <= TRUE;
+    S_AXI_AWVALID <= '0';
+    S_AXI_WVALID <= '0';
+    
+    wait until write_response_handshake_complete <= TRUE;
+    S_AXI_BREADY <= '0';
+    
+    wait until S_AXI_ACLK <= '1';
+    wait until S_AXI_ACLK <= '0';
+    
+    -- ENABLE INTERRUPTS
+    S_AXI_AWADDR <= x"0000_0028";
+    S_AXI_AWVALID <= '1';
+    S_AXI_WDATA <= x"0000_0100";
+    S_AXI_WSTB <= "0011";
+    S_AXI_WVALID <= '1';
+    S_AXI_BREADY <= '1';
+    
+    wait until address_write_handshake_complete <= TRUE;
+    S_AXI_AWVALID <= '0';
+    S_AXI_WVALID <= '0';
+    
+    wait until write_response_handshake_complete <= TRUE;
+    S_AXI_BREADY <= '0';
+    
+    wait until S_AXI_ACLK <= '1';
+    wait until S_AXI_ACLK <= '0';
+    
+    -- WRITE TO SS REGISTER
+    S_AXI_AWADDR <= x"0000_0070";
+    S_AXI_AWVALID <= '1';
+    S_AXI_WDATA <= x"FFFF_FFFE";
+    S_AXI_WSTB <= "1111";
+    S_AXI_WVALID <= '1';
+    S_AXI_BREADY <= '1';
+    
+    wait until address_write_handshake_complete <= TRUE;
+    S_AXI_AWVALID <= '0';
+    S_AXI_WVALID <= '0';
+    
+    wait until write_response_handshake_complete <= TRUE;
+    S_AXI_BREADY <= '0';
+    
+    wait until S_AXI_ACLK <= '1';
+    wait until S_AXI_ACLK <= '0';
     
     -- WRITE DATA TO TX FIFO
     S_AXI_AWADDR <= x"0000_0068";
     S_AXI_AWVALID <= '1';
-    S_AXI_WDATA <= x"FAFA_FA7E";
+    S_AXI_WDATA <= x"FAFA_FAFA";
     S_AXI_WSTB <= "1111";
     S_AXI_WVALID <= '1';
     S_AXI_BREADY <= '1';
@@ -477,9 +574,10 @@ begin
     wait until S_AXI_ACLK <= '1';
     wait until S_AXI_ACLK <= '0';
     
+    -- WRITE DATA TO TX FIFO
     S_AXI_AWADDR <= x"0000_0068";
     S_AXI_AWVALID <= '1';
-    S_AXI_WDATA <= x"FAFA_FA7E";
+    S_AXI_WDATA <= x"BABA_BABA";
     S_AXI_WSTB <= "1111";
     S_AXI_WVALID <= '1';
     S_AXI_BREADY <= '1';
@@ -494,9 +592,185 @@ begin
     wait until S_AXI_ACLK <= '1';
     wait until S_AXI_ACLK <= '0';
     
-       S_AXI_AWADDR <= x"0000_0068";
+    -- WRITE TO CONTROL REGISTER
+    S_AXI_AWADDR <= x"0000_0060";
     S_AXI_AWVALID <= '1';
-    S_AXI_WDATA <= x"FAFA_FA7E";
+    S_AXI_WDATA <= x"0000_0006";
+    S_AXI_WSTB <= "1111";
+    S_AXI_WVALID <= '1';
+    S_AXI_BREADY <= '1';
+    
+    wait until address_write_handshake_complete <= TRUE;
+    S_AXI_AWVALID <= '0';
+    S_AXI_WVALID <= '0';
+    
+    wait until write_response_handshake_complete <= TRUE;
+    S_AXI_BREADY <= '0';
+    
+    wait until IP2INTC_Irpt <= '1';
+    
+    -- READ FA FROM SPIDRR
+    S_AXI_ARADDR <= x"0000_006C";
+    S_AXI_ARVALID <= '1';
+    S_AXI_RREADY <= '1';
+    
+    wait until address_read_handshake_complete <= TRUE;
+    S_AXI_ARVALID <= '0';
+    
+    wait for 1ns;
+    
+    if ((S_AXI_RDATA /= x"0000_0000") OR (S_AXI_RRESP /= "00")) then
+      assert (FALSE) report "FAILED to read 00"
+      severity warning;
+    end if;
+    
+    wait until read_response_handshake_complete <= TRUE;
+    S_AXI_RREADY <= '0';
+    
+    wait until S_AXI_ACLK <= '1';
+    wait until S_AXI_ACLK <= '0';
+    
+    -- CLEAR INTERRUPT
+    S_AXI_AWADDR <= x"0000_0020";
+    S_AXI_AWVALID <= '1';
+    S_AXI_WDATA <= x"0000_0100";
+    S_AXI_WSTB <= "0011";
+    S_AXI_WVALID <= '1';
+    S_AXI_BREADY <= '1';
+    
+    wait until address_write_handshake_complete <= TRUE;
+    S_AXI_AWVALID <= '0';
+    S_AXI_WVALID <= '0';
+    
+    wait until write_response_handshake_complete <= TRUE;
+    S_AXI_BREADY <= '0';
+    
+    wait until S_AXI_ACLK <= '1';
+    wait until S_AXI_ACLK <= '0';
+    
+    wait until IP2INTC_Irpt <= '1';
+    
+    -- READ BA FROM SPIDRR
+    S_AXI_ARADDR <= x"0000_006C";
+    S_AXI_ARVALID <= '1';
+    S_AXI_RREADY <= '1';
+    
+    wait until address_read_handshake_complete <= TRUE;
+    S_AXI_ARVALID <= '0';
+    
+    wait for 1ns;
+    
+    if ((S_AXI_RDATA /= x"0000_0000") OR (S_AXI_RRESP /= "00")) then
+      assert (FALSE) report "Failed to read 00"
+      severity warning;
+    end if;
+    
+    wait until read_response_handshake_complete <= TRUE;
+    S_AXI_RREADY <= '0';
+    
+    wait until S_AXI_ACLK <= '1';
+    wait until S_AXI_ACLK <= '0';
+    
+     -- CLEAR INTERRUPT
+    S_AXI_AWADDR <= x"0000_0020";
+    S_AXI_AWVALID <= '1';
+    S_AXI_WDATA <= x"0000_0100";
+    S_AXI_WSTB <= "0011";
+    S_AXI_WVALID <= '1';
+    S_AXI_BREADY <= '1';
+    
+    wait until address_write_handshake_complete <= TRUE;
+    S_AXI_AWVALID <= '0';
+    S_AXI_WVALID <= '0';
+    
+    wait until write_response_handshake_complete <= TRUE;
+    S_AXI_BREADY <= '0';
+    
+    wait until S_AXI_ACLK <= '1';
+    wait until S_AXI_ACLK <= '0';
+    
+    S_AXI_ARESETN <= '0', '1' after 1us;
+    
+    wait until S_AXI_ARESETN <= '0';
+    wait until S_AXI_ARESETN <= '1';
+    
+    -- TEST MASTER MANUAL SLAVE SELECT
+    -- ENABLE GLOBAL INTERRUPT
+    S_AXI_AWADDR <= x"0000_001C";
+    S_AXI_AWVALID <= '1';
+    S_AXI_WDATA <= x"8000_0000";
+    S_AXI_WSTB <= "1000";
+    S_AXI_WVALID <= '1';
+    S_AXI_BREADY <= '1';
+    
+    wait until address_write_handshake_complete <= TRUE;
+    S_AXI_AWVALID <= '0';
+    S_AXI_WVALID <= '0';
+    
+    wait until write_response_handshake_complete <= TRUE;
+    S_AXI_BREADY <= '0';
+    
+    wait until S_AXI_ACLK <= '1';
+    wait until S_AXI_ACLK <= '0';
+    
+    -- ENABLE INTERRUPTS
+    S_AXI_AWADDR <= x"0000_0028";
+    S_AXI_AWVALID <= '1';
+    S_AXI_WDATA <= x"0000_0100";
+    S_AXI_WSTB <= "0011";
+    S_AXI_WVALID <= '1';
+    S_AXI_BREADY <= '1';
+    
+    wait until address_write_handshake_complete <= TRUE;
+    S_AXI_AWVALID <= '0';
+    S_AXI_WVALID <= '0';
+    
+    wait until write_response_handshake_complete <= TRUE;
+    S_AXI_BREADY <= '0';
+    
+    wait until S_AXI_ACLK <= '1';
+    wait until S_AXI_ACLK <= '0';
+    
+    -- WRITE TO SS REGISTER
+    S_AXI_AWADDR <= x"0000_0070";
+    S_AXI_AWVALID <= '1';
+    S_AXI_WDATA <= x"FFFF_FFFE";
+    S_AXI_WSTB <= "1111";
+    S_AXI_WVALID <= '1';
+    S_AXI_BREADY <= '1';
+    
+    wait until address_write_handshake_complete <= TRUE;
+    S_AXI_AWVALID <= '0';
+    S_AXI_WVALID <= '0';
+    
+    wait until write_response_handshake_complete <= TRUE;
+    S_AXI_BREADY <= '0';
+    
+    wait until S_AXI_ACLK <= '1';
+    wait until S_AXI_ACLK <= '0';
+    
+    -- WRITE DATA TO TX FIFO
+    S_AXI_AWADDR <= x"0000_0068";
+    S_AXI_AWVALID <= '1';
+    S_AXI_WDATA <= x"FAFA_FAFA";
+    S_AXI_WSTB <= "1111";
+    S_AXI_WVALID <= '1';
+    S_AXI_BREADY <= '1';
+    
+    wait until address_write_handshake_complete <= TRUE;
+    S_AXI_AWVALID <= '0';
+    S_AXI_WVALID <= '0';
+    
+    wait until write_response_handshake_complete <= TRUE;
+    S_AXI_BREADY <= '0';
+    
+    wait until S_AXI_ACLK <= '1';
+    wait until S_AXI_ACLK <= '0';
+    
+    -- WRITE DATA TO TX FIFO
+    S_AXI_AWADDR <= x"0000_0068";
+    S_AXI_AWVALID <= '1';
+    S_AXI_WDATA <= x"BABA_BABA";
     S_AXI_WSTB <= "1111";
     S_AXI_WVALID <= '1';
     S_AXI_BREADY <= '1';
@@ -515,10 +789,48 @@ begin
     S_AXI_AWADDR <= x"0000_0060";
     S_AXI_AWVALID <= '1';
     S_AXI_WDATA <= x"0000_0086";
+    S_AXI_WSTB <= "1111";
+    S_AXI_WVALID <= '1';
+    S_AXI_BREADY <= '1';
+    
+    wait until address_write_handshake_complete <= TRUE;
+    S_AXI_AWVALID <= '0';
+    S_AXI_WVALID <= '0';
+    
+    wait until write_response_handshake_complete <= TRUE;
+    S_AXI_BREADY <= '0';
+    
+    wait until IP2INTC_Irpt <= '1';
+    
+    -- READ FA FROM SPIDRR
+    S_AXI_ARADDR <= x"0000_006C";
+    S_AXI_ARVALID <= '1';
+    S_AXI_RREADY <= '1';
+    
+    wait until address_read_handshake_complete <= TRUE;
+    S_AXI_ARVALID <= '0';
+    
+    wait for 1ns;
+    
+    if ((S_AXI_RDATA /= x"0000_0000") OR (S_AXI_RRESP /= "00")) then
+      assert (FALSE) report "FAILED to read 00"
+      severity warning;
+    end if;
+    
+    wait until read_response_handshake_complete <= TRUE;
+    S_AXI_RREADY <= '0';
+    
+    wait until S_AXI_ACLK <= '1';
+    wait until S_AXI_ACLK <= '0';
+    
+    -- CLEAR INTERRUPT
+    S_AXI_AWADDR <= x"0000_0020";
+    S_AXI_AWVALID <= '1';
+    S_AXI_WDATA <= x"0000_0100";
     S_AXI_WSTB <= "0011";
     S_AXI_WVALID <= '1';
     S_AXI_BREADY <= '1';
-    SpiSEL<='1';
+    
     wait until address_write_handshake_complete <= TRUE;
     S_AXI_AWVALID <= '0';
     S_AXI_WVALID <= '0';
@@ -529,49 +841,244 @@ begin
     wait until S_AXI_ACLK <= '1';
     wait until S_AXI_ACLK <= '0';
     
-    wait until SS_T<='0';
-    MISO_I <='0';
-    WAIT FOR 80 NS;
-     MISO_I <='1';
-     WAIT FOR 40 NS;
-      MISO_I <='0';
-     WAIT FOR 40 NS;
-      MISO_I <='0';
-     WAIT FOR 40 NS;
-     MISO_I <='0';
-     WAIT FOR 40 NS;
-     MISO_I <='0';
-     WAIT FOR 40 NS;
-      MISO_I <='0';
-       WAIT FOR 40 NS;
-       MISO_I <='0';
-       WAIT FOR 40 NS;
-      MISO_I <='1';
-      WAIT FOR 40 NS;
-       MISO_I <='0';
-     WAIT FOR 40 NS;
-      MISO_I <='0';
-     WAIT FOR 40 NS;
-      MISO_I <='0';
-     WAIT FOR 40 NS;
-     MISO_I <='0';
-     WAIT FOR 40 NS;
-     MISO_I <='0';
-     
-       S_AXI_AWADDR <= x"0000_0060";
+    wait until IP2INTC_Irpt <= '1';
+    
+    -- WRITE TO SS REGISTER
+    S_AXI_AWADDR <= x"0000_0070";
     S_AXI_AWVALID <= '1';
-    S_AXI_WDATA <= x"0000_0085";
+    S_AXI_WDATA <= x"FFFF_FFFF";
+    S_AXI_WSTB <= "1111";
+    S_AXI_WVALID <= '1';
+    S_AXI_BREADY <= '1';
+    
+    wait until address_write_handshake_complete <= TRUE;
+    S_AXI_AWVALID <= '0';
+    S_AXI_WVALID <= '0';
+    
+    wait until write_response_handshake_complete <= TRUE;
+    S_AXI_BREADY <= '0';
+    
+    wait until S_AXI_ACLK <= '1';
+    wait until S_AXI_ACLK <= '0';
+    
+    -- READ BA FROM SPIDRR
+    S_AXI_ARADDR <= x"0000_006C";
+    S_AXI_ARVALID <= '1';
+    S_AXI_RREADY <= '1';
+    
+    wait until address_read_handshake_complete <= TRUE;
+    S_AXI_ARVALID <= '0';
+    
+    wait for 1ns;
+    
+    if ((S_AXI_RDATA /= x"0000_0000") OR (S_AXI_RRESP /= "00")) then
+      assert (FALSE) report "Failed to read 00"
+      severity warning;
+    end if;
+    
+    wait until read_response_handshake_complete <= TRUE;
+    S_AXI_RREADY <= '0';
+    
+    wait until S_AXI_ACLK <= '1';
+    wait until S_AXI_ACLK <= '0';
+    
+     -- CLEAR INTERRUPT
+    S_AXI_AWADDR <= x"0000_0020";
+    S_AXI_AWVALID <= '1';
+    S_AXI_WDATA <= x"0000_0100";
     S_AXI_WSTB <= "0011";
     S_AXI_WVALID <= '1';
     S_AXI_BREADY <= '1';
-    SpiSEL<='1';
-     WAIT FOR 40 NS;
-
-   MISO_I <='0';
-       WAIT FOR 40 NS;
-      MISO_I <='1';
+    
+    wait until address_write_handshake_complete <= TRUE;
+    S_AXI_AWVALID <= '0';
+    S_AXI_WVALID <= '0';
+    
+    wait until write_response_handshake_complete <= TRUE;
+    S_AXI_BREADY <= '0';
+    
+    wait until S_AXI_ACLK <= '1';
+    wait until S_AXI_ACLK <= '0';
+    
+    S_AXI_ARESETN <= '0', '1' after 1us;
+    
+    wait until S_AXI_ARESETN <= '0';
+    wait until S_AXI_ARESETN <= '1';
     
     
+    
+    
+    
+    
+    -- TEST SLAVE MODE
+    -- ENABLE GLOBAL INTERRUPT
+    S_AXI_AWADDR <= x"0000_001C";
+    S_AXI_AWVALID <= '1';
+    S_AXI_WDATA <= x"8000_0000";
+    S_AXI_WSTB <= "1000";
+    S_AXI_WVALID <= '1';
+    S_AXI_BREADY <= '1';
+    
+    wait until address_write_handshake_complete <= TRUE;
+    S_AXI_AWVALID <= '0';
+    S_AXI_WVALID <= '0';
+    
+    wait until write_response_handshake_complete <= TRUE;
+    S_AXI_BREADY <= '0';
+    
+    wait until S_AXI_ACLK <= '1';
+    wait until S_AXI_ACLK <= '0';
+    
+    -- ENABLE INTERRUPTS
+    S_AXI_AWADDR <= x"0000_0028";
+    S_AXI_AWVALID <= '1';
+    S_AXI_WDATA <= x"0000_0100";
+    S_AXI_WSTB <= "0011";
+    S_AXI_WVALID <= '1';
+    S_AXI_BREADY <= '1';
+    
+    wait until address_write_handshake_complete <= TRUE;
+    S_AXI_AWVALID <= '0';
+    S_AXI_WVALID <= '0';
+    
+    wait until write_response_handshake_complete <= TRUE;
+    S_AXI_BREADY <= '0';
+    
+    wait until S_AXI_ACLK <= '1';
+    wait until S_AXI_ACLK <= '0';
+    
+    -- WRITE DATA TO TX FIFO
+    S_AXI_AWADDR <= x"0000_0068";
+    S_AXI_AWVALID <= '1';
+    S_AXI_WDATA <= x"FAFA_FAFA";
+    S_AXI_WSTB <= "1111";
+    S_AXI_WVALID <= '1';
+    S_AXI_BREADY <= '1';
+    
+    wait until address_write_handshake_complete <= TRUE;
+    S_AXI_AWVALID <= '0';
+    S_AXI_WVALID <= '0';
+    
+    wait until write_response_handshake_complete <= TRUE;
+    S_AXI_BREADY <= '0';
+    
+    wait until S_AXI_ACLK <= '1';
+    wait until S_AXI_ACLK <= '0';
+    
+    -- WRITE DATA TO TX FIFO
+    S_AXI_AWADDR <= x"0000_0068";
+    S_AXI_AWVALID <= '1';
+    S_AXI_WDATA <= x"BABA_BABA";
+    S_AXI_WSTB <= "1111";
+    S_AXI_WVALID <= '1';
+    S_AXI_BREADY <= '1';
+    
+    wait until address_write_handshake_complete <= TRUE;
+    S_AXI_AWVALID <= '0';
+    S_AXI_WVALID <= '0';
+    
+    wait until write_response_handshake_complete <= TRUE;
+    S_AXI_BREADY <= '0';
+    
+    wait until S_AXI_ACLK <= '1';
+    wait until S_AXI_ACLK <= '0';
+    
+    -- WRITE TO CONTROL REGISTER
+    S_AXI_AWADDR <= x"0000_0060";
+    S_AXI_AWVALID <= '1';
+    S_AXI_WDATA <= x"0000_0002";
+    S_AXI_WSTB <= "1111";
+    S_AXI_WVALID <= '1';
+    S_AXI_BREADY <= '1';
+    
+    wait until address_write_handshake_complete <= TRUE;
+    S_AXI_AWVALID <= '0';
+    S_AXI_WVALID <= '0';
+    
+    wait until write_response_handshake_complete <= TRUE;
+    S_AXI_BREADY <= '0';
+    
+    -- CLOCK IN MOSI_I FA
+    wait for 500ns;
+    
+    SPISEL <= '0';
+    MOSI_I <= '1';
+    wait for 500ns;
+    SCK_I <= '1';
+    wait for 500ns;
+    SCK_I <= '0';
+    
+    wait for 500ns;
+    
+    SCK_I <= '1';
+    wait for 500ns;
+    SCK_I <= '0';
+    
+    wait for 500ns;
+    
+    SCK_I <= '1';
+    wait for 500ns;
+    SCK_I <= '0';
+    
+    wait for 500ns;
+    
+    SCK_I <= '1';
+    wait for 500ns;
+    SCK_I <= '0';
+    
+    wait for 500ns;
+    
+    SCK_I <= '1';
+    wait for 500ns;
+    SCK_I <= '0';
+    MOSI_I <= '0';
+    
+    wait for 500ns;
+    
+    SCK_I <= '1';
+    wait for 500ns;
+    SCK_I <= '0';
+    MOSI_I <= '1';
+    
+    wait for 500ns;
+    
+    SCK_I <= '1';
+    wait for 500ns;
+    SCK_I <= '0';
+    MOSI_I <='0';
+    
+    wait for 500ns;
+    
+    SCK_I <= '1';
+    wait for 500ns;
+    SCK_I <= '0';
+    wait for 500ns;
+    
+    SPISEL <= '1';
+    
+    wait until IP2INTC_Irpt <= '1';
+    
+    -- READ FA FROM SPIDRR
+    S_AXI_ARADDR <= x"0000_006C";
+    S_AXI_ARVALID <= '1';
+    S_AXI_RREADY <= '1';
+    
+    wait until address_read_handshake_complete <= TRUE;
+    S_AXI_ARVALID <= '0';
+    
+    wait for 1ns;
+    
+    if ((S_AXI_RDATA /= x"0000_00FA") OR (S_AXI_RRESP /= "00")) then
+      assert (FALSE) report "FAILED to read FA"
+      severity warning;
+    end if;
+    
+    wait until read_response_handshake_complete <= TRUE;
+    S_AXI_RREADY <= '0';
+    
+    wait until S_AXI_ACLK <= '1';
+    wait until S_AXI_ACLK <= '0';
+  
     report "TEST COMPLETE";
     wait;
   end process tb;

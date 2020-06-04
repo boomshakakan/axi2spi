@@ -177,6 +177,7 @@ package axi_spi_components_pkg is
       slave_mode_select_spi : IN STD_LOGIC; -- SPISR input from SPI
       modf_spi              : IN STD_LOGIC; -- SPISR input from SPI
       slave_modf_spi        : IN STD_LOGIC;
+      end_of_transaction    : IN STD_LOGIC;
     
       SPIDRR_Write      : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
         
@@ -405,6 +406,190 @@ package axi_spi_components_pkg is
   end component;
   ---------------------------------------------------------------------------------
   -- REGISTER IMPLEMENTATION END
+  ---------------------------------------------------------------------------------
+  
+  ---------------------------------------------------------------------------------
+  -- SPI IMPLEMENTATION BEGIN
+  ---------------------------------------------------------------------------------
+  component spi_module
+    Generic (
+      C_NUM_TRANSFER_BITS : INTEGER := 8;
+      C_NUM_SS_BITS : INTEGER := 1;
+      C_SCK_RATIO : INTEGER := 2
+    );
+    Port (
+      -- Internal Ports
+      S_AXI_ACLK : IN STD_LOGIC;
+      rst_n : IN STD_LOGIC;
+      
+      spi_clk : OUT STD_LOGIC;
+    
+      SPISSR_Read : IN STD_LOGIC_VECTOR((C_NUM_SS_BITS-1) DOWNTO 0);
+
+      tx_read : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+      tx_read_enable : OUT STD_LOGIC;
+      rx_write : OUT STD_LOGIC_VECTOR(31 DOWNTO 0);
+      rx_enable : OUT STD_LOGIC;
+      tx_empty : IN STD_LOGIC;
+      end_of_transaction : OUT STD_LOGIC;
+
+      lsb_first                            : IN STD_LOGIC;
+      master_transaction_inhibit           : IN STD_LOGIC;
+      manual_slave_select_assertion_enable : IN STD_LOGIC;
+      cpha                                 : IN STD_LOGIC;
+      cpol                                 : IN STD_LOGIC;
+      master_mode                          : IN STD_LOGIC;
+      spe                                  : IN STD_LOGIC;
+      loopback                             : IN STD_LOGIC;
+
+      slave_mode_select : OUT STD_LOGIC;
+      modf              : OUT STD_LOGIC;
+      slave_modf        : OUT STD_LOGIC;
+    
+      -- External Ports
+      MISO_O : OUT STD_LOGIC;
+      MOSI_O : OUT STD_LOGIC;
+      SCK_O : OUT STD_LOGIC;
+      SS_O   : OUT STD_LOGIC_VECTOR((C_NUM_SS_BITS-1) DOWNTO 0);
+      MISO_T : OUT STD_LOGIC;
+      MOSI_T : OUT STD_LOGIC;
+      SCK_T : OUT STD_LOGIC;
+      SS_T   : OUT STD_LOGIC;
+      MISO_I : IN STD_LOGIC;
+      MOSI_I : IN STD_LOGIC;
+      SCK_I : IN STD_LOGIC;
+      SS_I   : IN STD_LOGIC_VECTOR((C_NUM_SS_BITS-1) DOWNTO 0);
+      SPISEL : IN STD_LOGIC
+    );
+  end component;
+ 
+  component spi_cu
+    Port (
+      -- External Signals
+      rst_n              : IN STD_LOGIC;
+      tx_empty           : IN STD_LOGIC;
+      SPIDTR_read_enable : OUT STD_LOGIC;
+      SPIDRR_enable      : OUT STD_LOGIC;
+      ss_automatic       : OUT STD_LOGIC;
+    
+      -- Control Register Signals
+      master_mode                          : IN STD_LOGIC;
+      master_transaction_inhibit           : IN STD_LOGIC;
+      manual_slave_select_assertion_enable : IN STD_LOGIC;
+      spe                                  : IN STD_LOGIC;
+    
+      -- Shift Register Signals
+      load_enable  : OUT STD_LOGIC;
+      shift_enable : OUT STD_LOGIC;
+    
+      -- Clock Logic Signals
+      clk                    : IN STD_LOGIC;
+      enable_master_transfer : OUT STD_LOGIC;
+      master_transfer_done   : IN STD_LOGIC;
+    
+      -- Pin Interface Signals
+      SPISEL : IN STD_LOGIC;
+    
+      -- Status Signals
+      modf              : OUT STD_LOGIC;
+      slave_modf        : OUT STD_LOGIC;
+      slave_select_mode : OUT STD_LOGIC
+    );
+  end component;
+  
+  component BRG
+    Generic (
+      C_SCK_RATIO : INTEGER := 2
+    );
+    Port (
+      clk_in : in STD_LOGIC;
+      rst_n  : IN STD_LOGIC;
+      clk_out : OUT STD_LOGIC
+    );
+  end component;
+  
+  component shift_register_p2p
+    Generic (
+      C_NUM_TRANSFER_BITS: INTEGER := 8
+    );
+    Port (
+      clk : IN STD_LOGIC;
+      rst_n : IN STD_LOGIC;
+      load_enable : IN STD_LOGIC;
+      load : IN STD_LOGIC_VECTOR((C_NUM_TRANSFER_BITS-1) DOWNTO 0);
+      r_in : IN STD_LOGIC;
+      l_in : IN STD_LOGIC;
+      shift_rnl : IN STD_LOGIC;
+      shift_enable : IN STD_LOGIC;
+      d_out : OUT STD_LOGIC_VECTOR((C_NUM_TRANSFER_BITS-1) DOWNTO 0)
+    );
+  end component;
+  
+  component clock_logic
+    Generic (
+      C_NUM_TRANSFER_BITS: INTEGER := 8
+    );
+    Port (
+      system_clk : IN STD_LOGIC;
+      rst_n : IN STD_LOGIC;
+      enable_master_transfer : IN STD_LOGIC;
+      master_transfer_done : OUT STD_LOGIC;
+    
+      master_mode : IN STD_LOGIC;
+      cpol : IN STD_LOGIC;
+      cpha : IN STD_LOGIC;
+    
+      control_unit_clk : OUT STD_LOGIC;
+      master_clk_o : OUT STD_LOGIC;
+      slave_clk_i : IN STD_LOGIC;
+      shift_register_clk : OUT STD_LOGIC
+    );
+  end component;
+  
+  component pin_interface
+    Generic (
+      C_NUM_SS_BITS : INTEGER := 8
+    );
+    Port (
+      -- External Ports
+      SCK_O : OUT STD_LOGIC;
+      SCK_T : OUT STD_LOGIC;
+      SCK_I : IN STD_LOGIC;
+    
+      MOSI_O : OUT STD_LOGIC;
+      MOSI_T : OUT STD_LOGIC;
+      MOSI_I : IN STD_LOGIC;
+    
+      MISO_O : OUT STD_LOGIC;
+      MISO_T : OUT STD_LOGIC;
+      MISO_I : IN STD_LOGIC;
+    
+      SS_O : OUT STD_LOGIC_VECTOR((C_NUM_SS_BITS-1) DOWNTO 0);
+      SS_T : OUT STD_LOGIC;
+      SS_I : IN STD_LOGIC_VECTOR((C_NUM_SS_BITS-1) DOWNTO 0);
+    
+      SPISEL : IN STD_LOGIC;
+    
+      -- Internal Ports
+      slave_clk  : OUT STD_LOGIC;
+      master_clk : IN STD_LOGIC;
+    
+      slave_o  : IN STD_LOGIC;
+      master_o : IN STD_LOGIC;
+    
+      slave_i  : OUT STD_LOGIC;
+      master_i : OUT STD_LOGIC;
+    
+      master_mode : IN STD_LOGIC;
+      spe : IN STD_LOGIC;
+      loopback : IN STD_LOGIC;
+      SPISSR_Read : IN STD_LOGIC_VECTOR((C_NUM_SS_BITS-1) DOWNTO 0);
+    
+      slave_select : OUT STD_LOGIC
+    );
+  end component;
+  ---------------------------------------------------------------------------------
+  -- SPI IMPLEMENTATION END
   ---------------------------------------------------------------------------------
  
 end axi_spi_components_pkg;

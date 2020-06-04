@@ -32,6 +32,7 @@ entity axi_spi_core_registers is
     slave_mode_select_spi : IN STD_LOGIC; -- SPISR input from SPI
     modf_spi              : IN STD_LOGIC; -- SPISR input from SPI
     slave_modf_spi        : IN STD_LOGIC;
+    end_of_transaction    : IN STD_LOGIC;
     
     SPIDRR_Write      : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
         
@@ -54,7 +55,7 @@ entity axi_spi_core_registers is
     
     -- EXTERNAL INTERRUPT
     IP2INTC_Irpt : OUT STD_LOGIC;
-    
+     
     -- REG TO SPI
     SPICR_bits_synched  : OUT STD_LOGIC_VECTOR(9 DOWNTO 0);
     SPISSR_bits_synched : OUT STD_LOGIC_VECTOR((C_NUM_SS_BITS-1) DOWNTO 0);
@@ -71,6 +72,7 @@ architecture Structural of axi_spi_core_registers is
   SIGNAL rx_full_temp  : STD_LOGIC;
   SIGNAL rx_empty_temp : STD_LOGIC;
   SIGNAL tx_empty_temp : STD_LOGIC;
+  SIGNAL tx_empty_and_transaction_end : STD_LOGIC;
   SIGNAL dtr_underrun_temp : STD_LOGIC;
   SIGNAL drr_overrun_temp : STD_LOGIC;
   
@@ -171,7 +173,7 @@ begin
       SPICR_bits_synched  => SPICR_bits_synched,
       SPISSR_bits_synched => SPISSR_bits_synched,
       rx_full           => rx_full_temp,
-      tx_empty          => tx_empty_temp,
+      tx_empty          => tx_empty_and_transaction_end,
       modf              => modf_spi,
       slave_modf        => slave_modf_spi,
       dtr_underrun      => dtr_underrun_temp,
@@ -185,7 +187,8 @@ begin
       drr_overrun_synched       => drr_overrun_synched,
       slave_select_mode_synched => slave_select_mode_synched
     );
-  dtr_underrun_temp <= tx_empty_temp AND SPIDTR_Read_en;
+  tx_empty_and_transaction_end <= tx_empty_temp AND end_of_transaction;
+  dtr_underrun_temp <= tx_empty_and_transaction_end AND SPIDTR_Read_en;
   drr_overrun_temp <= rx_full_temp AND SPIDRR_en;
   
   irpt_generator : irpt_pulse_generator
